@@ -7,6 +7,7 @@
 ![Pages 在线](https://img.shields.io/badge/Pages-%E5%9C%A8%E7%BA%BF-3ddc97)
 ![tests](https://img.shields.io/badge/tests-238%20passing-3ddc97)
 ![no build](https://img.shields.io/badge/no--build-%E9%9B%B6%E4%BE%9D%E8%B5%96-3ddc97)
+![i18n](https://img.shields.io/badge/i18n-%E4%B8%AD%E8%8B%B1%E5%8F%8C%E8%AF%AD-3ddc97)
 ![license](https://img.shields.io/badge/license-MIT-3ddc97)
 
 ## 功能
@@ -20,6 +21,7 @@
 | 📚 **函数库** | 20+ 常用函数一键添加：幂 / 三角 / 反三角 / 指数对数 / 双曲 / 阶梯（floor、sign、sinc） |
 | 🖥️ **计算日志** | 终端风格实时记录每一步操作（解析、求导、切线、视图），像处理流水线一样透明 |
 | 🧩 **友好的输入** | 隐式乘法（`2x`、`xsin(x)`）、Unicode 写法（`π`、`√`、`x²`）自动识别，错误定位到第几个字符 |
+| 🌐 **中英双语** | 跟随系统语言，顶栏一键切换，选择记在 localStorage；连解析错误都分中英（引擎错误带 code，界面侧查译文） |
 
 ## 设计语言
 
@@ -30,6 +32,10 @@ fragment shader 绘制的 RGB 正弦波场（`assets/js/wave-bg.js`，三条正�
 淡入上移。移动端做了三处适配：画布高度用 CSS 固定值 + 阴影降级、窄屏面板模糊从 18px 降到 8px、
 `prefers-reduced-motion` 下动画静止。站点图标由 `tools/make_icons.py` 纯标准库光栅化生成（圆角矩形 SDF +
 贝塞尔曲线距离场，不依赖 PIL），主图标 base64 内联规避浏览器 favicon 缓存。
+
+双语（中英）同样沿用 IMC 的模式：`assets/js/i18n.js` 词典 + `data-i18n` 静态标注 + `t(key, vars)` 动态文案，
+顶栏一键切换、跟随系统语言、localStorage 记忆；连解析错误都分中英——引擎抛错时带 `code/vars`，
+英文下由界面拼出 `Near character N: ...` 这样的完整译文。
 
 ## 它是怎么工作的
 
@@ -46,11 +52,11 @@ fragment shader 绘制的 RGB 正弦波场（`assets/js/wave-bg.js`，三条正�
 ## 测试
 
 ```bash
-node tests/engine.test.cjs    # 238 项：符号导数 vs 中心差分交叉验证、解析往返、报错定位
+node tests/engine.test.cjs    # 260 项：符号导数 vs 中心差分、解析往返、错误码、中英 key 对齐
 ```
 
 每个内置函数的导数都与数值差分交叉验证过，测试还覆盖了复合函数（专门抓链式因子遗漏）、
-同底幂合并、分数约分等化简路径。
+同底幂合并、分数约分等化简路径，以及中英词典的 key 对齐（防止漏翻）。
 
 ## License
 
