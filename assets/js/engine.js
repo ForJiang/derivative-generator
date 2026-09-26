@@ -15,10 +15,12 @@
 
   /* ---------------- 工具 ---------------- */
 
-  function parseErr(src, pos, msg) {
+  // code/vars 供界面做多语言翻译：message 始终是中文原文，en 下 UI 用 code 查译文
+  function parseErr(src, pos, msg, code, vars) {
     const e = new Error('第 ' + (pos + 1) + ' 个字符附近：' + msg);
     e.pos = pos;
     e.isParseError = true;
+    if (code) { e.code = code; e.vars = vars || {}; }
     return e;
   }
 
@@ -103,7 +105,7 @@
         let j = i;
         while (j < s.length && /[0-9.]/.test(s[j])) j++;
         const str = s.slice(i, j);
-        if ((str.match(/\./g) || []).length > 1) throw parseErr(src, i, '数字格式不对："' + str + '"');
+        if ((str.match(/\./g) || []).length > 1) throw parseErr(src, i, '数字格式不对："' + str + '"', 'num', { str: str });
         toks.push({ t: 'num', v: parseFloat(str), pos: i });
         i = j; continue;
       }
@@ -133,13 +135,13 @@
             toks.push({ t: 'var', pos: i + k });
             k++;
           } else {
-            throw parseErr(src, i + k, '不认识的符号 "' + run[k] + '"（目前只支持变量 x，常量 e 和 pi）');
+            throw parseErr(src, i + k, '不认识的符号 "' + run[k] + '"（目前只支持变量 x，常量 e 和 pi）', 'unknownLetter', { ch: run[k] });
           }
         }
         i = j; continue;
       }
       if ('+-*/^(),'.indexOf(c) >= 0) { toks.push({ t: 'op', ch: c, pos: i }); i++; continue; }
-      throw parseErr(src, i, '不认识的字符 "' + c + '"');
+      throw parseErr(src, i, '不认识的字符 "' + c + '"', 'unknownChar', { ch: c });
     }
     return toks;
   }
@@ -149,14 +151,14 @@
   function parse(src) {
     if (!src || !String(src).trim()) throw new Error('请先输入一个函数，例如 x^2 或 sin(x)');
     const toks = tokenize(src);
-    if (toks.length === 0) throw parseErr(src, 0, '请输入一个函数');
+    if (toks.length === 0) throw parseErr(src, 0, '请输入一个函数', 'empty');
     let p = 0;
     function peek() { return toks[p]; }
     function isOp(ch) { const tk = toks[p]; return tk && tk.t === 'op' && tk.ch === ch; }
     function expectOp(ch) {
       if (!isOp(ch)) {
         const tk = toks[p];
-        throw parseErr(src, tk ? tk.pos : src.length, '这里应该是 "' + ch + '"');
+        throw parseErr(src, tk ? tk.pos : src.length, '这里应该是 "' + ch + '"', 'expect', { ch: ch });
       }
       p++;
     }
@@ -209,15 +211,15 @@
 
     function parseAtom() {
       const tk = toks[p++];
-      if (!tk) throw parseErr(src, src.length, '表达式不完整');
+      if (!tk) throw parseErr(src, src.length, '表达式不完整', 'incomplete');
       if (tk.t === 'num') return num(tk.v);
       if (tk.t === 'var') return { t: 'var' };
       if (tk.t === 'const') return { t: 'const', name: tk.name };
       if (tk.t === 'fn') {
-        if (!isOp('(')) throw parseErr(src, tk.pos, '函数 ' + tk.name + ' 后面要加括号，例如 ' + tk.name + '(x)');
+        if (!isOp('(')) throw parseErr(src, tk.pos, '函数 ' + tk.name + ' 后面要加括号，例如 ' + tk.name + '(x)', 'needParen', { fn: tk.name });
         p++;
         const arg = parseAdd();
-        if (isOp(',')) throw parseErr(src, toks[p].pos, '不支持多参数函数');
+        if (isOp(',')) throw parseErr(src, toks[p].pos, '不支持多参数函数', 'multiArg');
         expectOp(')');
         return { t: 'call', fn: tk.name, a: arg };
       }
@@ -227,15 +229,15 @@
         return e;
       }
       if (tk.t === 'op' && '*-/^)'.indexOf(tk.ch) >= 0) {
-        throw parseErr(src, tk.pos, '"' + tk.ch + '" 前面缺少内容');
+        throw parseErr(src, tk.pos, '"' + tk.ch + '" 前面缺少内容', 'missingOperand', { ch: tk.ch });
       }
-      throw parseErr(src, tk.pos, '这里出现了意外的 "' + tk.ch + '"');
+      throw parseErr(src, tk.pos, '这里出现了意外的 "' + tk.ch + '"', 'unexpected', { ch: tk.ch });
     }
 
     const result = parseAdd();
     if (p < toks.length) {
       const tk = toks[p];
-      throw parseErr(src, tk.pos, tk.t === 'op' ? '出现了多余的 "' + tk.ch + '"' : '这里多了内容');
+      throw parseErr(src, tk.pos, tk.t === 'op' ? '出现了多余的 "' + tk.ch + '"' : '这里多了内容', tk.t === 'op' ? 'trailingOp' : 'trailing', tk.t === 'op' ? { ch: tk.ch } : undefined);
     }
     return result;
   }
@@ -374,7 +376,10 @@
         const fdef = FUNCS[node.fn];
         if (!fdef) return num(0);
         if (fdef.nonDiff) {
-          throw new Error(node.fn + ' 是阶梯/分段函数，几乎处处不可导，不支持符号求导（图像仍可正常绘制）');
+          const e = new Error(node.fn + ' 是阶梯/分段函数，几乎处处不可导，不支持符号求导（图像仍可正常绘制）');
+          e.code = 'nonDiff';
+          e.vars = { fn: node.fn };
+          throw e;
         }
         return fdef.d(node.a, D);
       }
@@ -418,7 +423,10 @@
       case 'call': {
         const fdef = FUNCS[node.fn];
         if (!fdef || fdef.nonDiff) {
-          throw new Error(node.fn + ' 是阶梯/分段函数，几乎处处不可导，不支持符号求导（图像仍可正常绘制）');
+          const e = new Error(node.fn + ' 是阶梯/分段函数，几乎处处不可导，不支持符号求导（图像仍可正常绘制）');
+          e.code = 'nonDiff';
+          e.vars = { fn: node.fn };
+          throw e;
         }
         return fdef.d(node.a, hole);
       }

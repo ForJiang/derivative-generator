@@ -30,11 +30,12 @@
 <header class="topbar">
   <a class="brand" href="./">
     <span class="brand-text">
-      <strong>函数图像生成器</strong>
-      <small>绘图 · 求导 · 切线</small>
+      <strong data-i18n="brand.name">函数图像生成器</strong>
+      <small data-i18n="brand.tag">绘图 · 求导 · 切线</small>
     </span>
   </a>
   <div class="topbar-actions">
+    <button class="icon-btn" id="langBtn" type="button" title="Switch to English">EN</button>
     <a class="icon-btn" href="https://github.com/ForJiang/function-grapher" target="_blank" rel="noreferrer" title="GitHub">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.34-1.28-1.7-1.28-1.7-1.05-.71.08-.7.08-.7 1.16.09 1.77 1.2 1.77 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.27.73-1.56-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.2-3.1-.13-.29-.52-1.46.1-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.24 2.76.12 3.05.75.81 1.2 1.84 1.2 3.1 0 4.43-2.7 5.4-5.26 5.68.42.36.79 1.07.79 2.16v3.2c0 .31.2.66.8.55A11.5 11.5 0 0 0 23.5 12A11.5 11.5 0 0 0 12 .5Z"/></svg>
     </a>
@@ -43,42 +44,42 @@
 
 <main>
   <section class="hero">
-    <h1>输入表达式，立刻画出函数图像</h1>
-    <p>多项式、三角、指数、对数、阶梯函数都能画——最多 6 条曲线同图对比，选中任意一条即可符号求导、生成切线方程。全部计算在浏览器里完成，不注册，不上传。</p>
+    <h1 data-i18n="hero.title">输入表达式，立刻画出函数图像</h1>
+    <p data-i18n="hero.sub">多项式、三角、指数、对数、阶梯函数都能画——最多 6 条曲线同图对比，选中任意一条即可符号求导、生成切线方程。全部计算在浏览器里完成，不注册，不上传。</p>
     <div class="hero-badges">
       <span class="badge">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6z"/><path d="M9.2 12.2l2 2 3.6-3.8"/></svg>
-        <span>100% 本地计算</span>
+        <span data-i18n="hero.badge.privacy">100% 本地计算</span>
       </span>
       <span class="badge">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
-        <span>多函数 · 导数 · 切线</span>
+        <span data-i18n="hero.badge.formats">多函数 · 导数 · 切线</span>
       </span>
       <span class="badge">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.2 6-5.5-3-5.5 3 1.2-6L3.2 9.4l6.1-.8z"/></svg>
-        <span>免费 · 开源 · 无广告</span>
+        <span data-i18n="hero.badge.oss">免费 · 开源 · 无广告</span>
       </span>
     </div>
   </section>
 
   <section class="panel" data-reveal>
     <div class="panel-head">
-      <h2>函数</h2>
+      <h2 data-i18n="panel.fns">函数</h2>
       <span class="ph-sub" id="fnCount">0 / 6 条</span>
     </div>
 
     <ul class="fn-list" id="fnList"></ul>
-    <p class="fn-empty" id="fnEmpty" hidden>还没有函数——从下面的函数库里挑一个，或点上方按钮添加。</p>
+    <p class="fn-empty" id="fnEmpty" data-i18n="fn.empty" hidden>还没有函数——从下面的函数库里挑一个，或点上方按钮添加。</p>
 
     <div class="fn-actions-btns">
-      <button class="btn btn-ghost" id="addFn" type="button">+ 添加函数</button>
-      <span class="an-hint">点击选中一行，即可对它求导、作切线</span>
+      <button class="btn btn-ghost" id="addFn" type="button" data-i18n="fn.add">+ 添加函数</button>
+      <span class="an-hint" data-i18n="fn.hint">点击选中一行，即可对它求导、作切线</span>
     </div>
   </section>
 
   <section class="panel" data-reveal>
     <div class="panel-head">
-      <h2>函数图像</h2>
+      <h2 data-i18n="panel.graph">函数图像</h2>
       <div class="ph-tools">
         <span class="legend" id="legend"></span>
         <button class="btn-icon" id="zoomOut" type="button" title="缩小">−</button>
@@ -91,25 +92,25 @@
       <canvas id="plot" aria-label="函数图像，支持滚轮缩放、拖拽平移、悬停查看数值"></canvas>
       <div class="tooltip" id="tooltip"></div>
     </div>
-    <p class="plot-hint">滚轮缩放 · 拖拽平移 · 双击复位 · 悬停查看数值 · 曲线在函数没有定义的地方自动断开</p>
+    <p class="plot-hint" data-i18n="graph.hint">滚轮缩放 · 拖拽平移 · 双击复位 · 悬停查看数值 · 曲线在函数没有定义的地方自动断开</p>
   </section>
 
   <section class="panel" data-reveal>
     <div class="panel-head">
-      <h2>分析</h2>
-      <span class="ph-sub" id="anTitle">点击上方任一函数，对它求导、作切线</span>
+      <h2 data-i18n="panel.analyze">分析</h2>
+      <span class="ph-sub" id="anTitle" data-i18n="analyze.default">点击上方任一函数，对它求导、作切线</span>
     </div>
 
     <div class="analysis-grid">
       <div class="an-card">
         <div class="an-title">
-          <h3>求导</h3>
+          <h3 data-i18n="d.head">求导</h3>
           <div class="order-ctrl" aria-label="导数阶数">
-            <span>第</span>
+            <span data-i18n="d.orderPrefix">第</span>
             <button class="btn-icon" id="orderMinus" type="button" title="降低阶数">−</button>
             <span class="order-val" id="orderVal">1</span>
             <button class="btn-icon" id="orderPlus" type="button" title="提高阶数">+</button>
-            <span>阶</span>
+            <span data-i18n="d.orderSuffix">阶</span>
           </div>
         </div>
         <div class="result-row">
@@ -120,24 +121,24 @@
         <div class="fn-actions-btns">
           <button class="btn-icon" id="copyBtn" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
-            复制
+            <span data-i18n="d.copy">复制</span>
           </button>
-          <button class="btn-icon" id="derivToggle" type="button">在图中显示导函数</button>
+          <button class="btn-icon" id="derivToggle" type="button"><span data-i18n="d.showOnGraph">在图中显示导函数</span></button>
         </div>
         <div class="steps" id="stepsCard" hidden>
-          <h3 style="margin:0 0 4px;font-size:12.5px;color:var(--text-3)">求导过程</h3>
+          <h3 style="margin:0 0 4px;font-size:12.5px;color:var(--text-3)" data-i18n="d.steps">求导过程</h3>
           <ol class="steps" id="stepsList"></ol>
         </div>
       </div>
 
       <div class="an-card">
-        <h3>切线</h3>
+        <h3 data-i18n="tangent.head">切线</h3>
         <div class="tangent-row">
-          <label for="tangentX">切点 x₀ =</label>
+          <label for="tangentX" data-i18n="tangent.point">切点 x₀ =</label>
           <input id="tangentX" type="text" value="1" spellcheck="false" autocomplete="off">
-          <button class="btn-icon" id="tangentBtn" type="button">作切线</button>
-          <button class="btn-icon" id="tangentClear" type="button">清除</button>
-          <p class="tangent-info" id="tangentInfo">输入切点的横坐标，画出切线并给出方程；这里也支持表达式，比如 pi/2。</p>
+          <button class="btn-icon" id="tangentBtn" type="button" data-i18n="tangent.draw">作切线</button>
+          <button class="btn-icon" id="tangentClear" type="button" data-i18n="tangent.clear">清除</button>
+          <p class="tangent-info" id="tangentInfo" data-i18n="tangent.default">输入切点的横坐标，画出切线并给出方程；这里也支持表达式，比如 pi/2。</p>
         </div>
       </div>
     </div>
@@ -147,29 +148,29 @@
     <div class="logpanel-head">
       <span class="logpanel-title">
         <span class="log-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-        <strong>计算日志</strong>
+        <strong data-i18n="panel.log">计算日志</strong>
         <span class="log-count" id="logCount">0</span>
       </span>
       <span class="logpanel-actions">
-        <span class="log-hint">全部在浏览器内执行，输入不会离开本机。</span>
-        <button class="btn-icon" id="logClear" type="button">清空</button>
-        <button class="btn-icon" id="logToggle" type="button" aria-expanded="true">收起</button>
+        <span class="log-hint" data-i18n="log.hint">全部在浏览器内执行，输入不会离开本机。</span>
+        <button class="btn-icon" id="logClear" type="button" data-i18n="log.clear">清空</button>
+        <button class="btn-icon" id="logToggle" type="button" aria-expanded="true" data-i18n="log.collapse">收起</button>
       </span>
     </div>
     <div class="log-body" id="logBody" aria-live="polite">
-      <p class="log-empty" id="logEmpty">还没有处理记录，添加函数后这里会实时显示执行过程。</p>
+      <p class="log-empty" id="logEmpty" data-i18n="log.empty">还没有处理记录，添加函数后这里会实时显示执行过程。</p>
     </div>
   </section>
 
   <section class="panel" data-reveal>
     <div class="panel-head">
-      <h2>函数库</h2>
-      <span class="ph-sub">点一下即以新曲线的形式加入上方列表</span>
+      <h2 data-i18n="panel.lib">函数库</h2>
+      <span class="ph-sub" data-i18n="lib.sub">点一下即以新曲线的形式加入上方列表</span>
     </div>
 
     <div class="lib" id="library">
       <div class="lib-cat">
-        <span>基础</span>
+        <span data-i18n="lib.cat.basic">基础</span>
         <button class="chip" data-expr="x^2">x²</button>
         <button class="chip" data-expr="x^3 - x + 1">x³ − x + 1</button>
         <button class="chip" data-expr="1/x">1/x</button>
@@ -178,14 +179,14 @@
         <button class="chip" data-expr="floor(x)">floor(x)</button>
       </div>
       <div class="lib-cat">
-        <span>三角</span>
+        <span data-i18n="lib.cat.trig">三角</span>
         <button class="chip" data-expr="sin(x)">sin(x)</button>
         <button class="chip" data-expr="tan(x)">tan(x)</button>
         <button class="chip" data-expr="sin(x)/x">sinc 型</button>
         <button class="chip" data-expr="sin(x)cos(x)">sin(x)cos(x)</button>
       </div>
       <div class="lib-cat">
-        <span>指数 对数</span>
+        <span data-i18n="lib.cat.exp">指数 对数</span>
         <button class="chip" data-expr="e^x">eˣ</button>
         <button class="chip" data-expr="exp(-x^2)">e^(−x²)</button>
         <button class="chip" data-expr="ln(x)">ln(x)</button>
@@ -193,7 +194,7 @@
         <button class="chip" data-expr="log(x)">log(x)</button>
       </div>
       <div class="lib-cat">
-        <span>进阶</span>
+        <span data-i18n="lib.cat.adv">进阶</span>
         <button class="chip" data-expr="x^x">xˣ</button>
         <button class="chip" data-expr="x·sin(x)">x·sin(x)</button>
         <button class="chip" data-expr="e^x·sin(x)">eˣ·sin(x)</button>
@@ -203,8 +204,8 @@
     </div>
 
     <details class="faq" style="margin-top:4px">
-      <summary>还能写哪些表达式？点开看语法支持</summary>
-      <p>
+      <summary data-i18n="lib.syntax">还能写哪些表达式？点开看语法支持</summary>
+      <p data-i18n-html="lib.syntax.body">
         运算 <code>+ - * / ^</code>，乘号可以省略：<code>2x</code>、<code>2sin(x)</code>、<code>x(x+1)</code> 都合法。
         函数支持 <code>sin cos tan cot sec csc</code>、<code>asin acos atan</code>、<code>sinh cosh tanh</code>、
         <code>ln log lg log2</code>、<code>exp sqrt cbrt abs</code>、<code>floor ceil round sign sinc</code>；
@@ -216,33 +217,33 @@
   </section>
 
   <section class="faq" data-reveal>
-    <h2>常见问题</h2>
+    <h2 data-i18n="faq.title">常见问题</h2>
     <details data-reveal>
-      <summary><span>图像是怎么画出来的？</span></summary>
-      <p>浏览器把表达式解析成语法树，在屏幕宽度上逐点采样求值，用 Canvas 连成曲线。缩放和平移只是改变采样窗口，所以每一次操作都会重新计算，而不是拉伸旧图像。</p>
+      <summary><span data-i18n="faq.q1">图像是怎么画出来的？</span></summary>
+      <p data-i18n="faq.a1">浏览器把表达式解析成语法树，在屏幕宽度上逐点采样求值，用 Canvas 连成曲线。缩放和平移只是改变采样窗口，所以每一次操作都会重新计算，而不是拉伸旧图像。</p>
     </details>
     <details data-reveal>
-      <summary><span>为什么曲线在某些地方断开了？</span></summary>
-      <p>因为函数在那里没有定义：tan 的渐近线、1/x 在 x=0、floor 的整数跳变。断开恰恰说明画对了。函数值发散到无穷大的地方也会断开。</p>
+      <summary><span data-i18n="faq.q2">为什么曲线在某些地方断开了？</span></summary>
+      <p data-i18n="faq.a2">因为函数在那里没有定义：tan 的渐近线、1/x 在 x=0、floor 的整数跳变。断开恰恰说明画对了。函数值发散到无穷大的地方也会断开。</p>
     </details>
     <details data-reveal>
-      <summary><span>求导是精确的吗？</span></summary>
-      <p>是符号推导——求和差法则、乘积法则、商法则、链式法则逐层展开，不是数值近似。结果经过 238 项自动化测试与数值差分交叉验证。化简程度有限，形式可能和教科书略有差异，但数值等价。</p>
+      <summary><span data-i18n="faq.q3">求导是精确的吗？</span></summary>
+      <p data-i18n="faq.a3">是符号推导——求和差法则、乘积法则、商法则、链式法则逐层展开，不是数值近似。结果经过 238 项自动化测试与数值差分交叉验证。化简程度有限，形式可能和教科书略有差异，但数值等价。</p>
     </details>
     <details data-reveal>
-      <summary><span>我的输入会被上传吗？</span></summary>
-      <p>不会。这个站点没有后端，所有解析、求导、绘图都发生在你的浏览器里；关闭页面后什么都不会留下。</p>
+      <summary><span data-i18n="faq.q4">我的输入会被上传吗？</span></summary>
+      <p data-i18n="faq.a4">不会。这个站点没有后端，所有解析、求导、绘图都发生在你的浏览器里；关闭页面后什么都不会留下。</p>
     </details>
     <details data-reveal>
-      <summary><span>为什么 floor、sign 画不出导数？</span></summary>
-      <p>它们是阶梯/分段函数，除跳变点外导数恒为 0，属于「几乎处处不可导」，符号求导没有教学意义——图像仍然可以正常绘制和缩放。</p>
+      <summary><span data-i18n="faq.q5">为什么 floor、sign 画不出导数？</span></summary>
+      <p data-i18n="faq.a5">它们是阶梯/分段函数，除跳变点外导数恒为 0，属于「几乎处处不可导」，符号求导没有教学意义——图像仍然可以正常绘制和缩放。</p>
     </details>
   </section>
 </main>
 
 <footer>
-  <span>无服务器 · 无日志 · 无追踪</span>
-  <span><a href="https://github.com/ForJiang/function-grapher" target="_blank" rel="noreferrer">GitHub</a> · <a href="https://github.com/ForJiang/function-grapher/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT License</a> · © 2026 ForJiang</span>
+  <span data-i18n="footer.privacy">无服务器 · 无日志 · 无追踪</span>
+  <span><a href="https://github.com/ForJiang/function-grapher" target="_blank" rel="noreferrer">GitHub</a> · <a href="https://github.com/ForJiang/function-grapher/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT License</a> · <span data-i18n="footer.copy">© 2026 ForJiang</span>
 </footer>
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
@@ -253,10 +254,11 @@
 
 <script src="assets/js/wave-bg.js?v=1"></script>
 <script src="assets/js/reveal.js?v=1"></script>
+<script src="assets/js/i18n.js?v=1"></script>
 <script src="assets/js/log.js?v=1"></script>
-<script src="assets/js/engine.js?v=4"></script>
+<script src="assets/js/engine.js?v=5"></script>
 <script src="assets/js/plot.js?v=4"></script>
-<script src="assets/js/main.js?v=4"></script>
+<script src="assets/js/main.js?v=7"></script>
 <script>
   /* 启动 WebGL 正弦波背景；环境不支持时 wave-bg 自身会保留 CSS 兜底 */
   if (window.startWaveBackground) window.startWaveBackground(document.getElementById('bgCanvas'));

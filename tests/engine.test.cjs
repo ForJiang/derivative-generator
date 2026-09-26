@@ -190,7 +190,28 @@ for (const bad of BAD) {
   ok(r2.steps.length >= 1, '幂函数也应有步骤');
 }
 
-/* ---------- 7. 渲染冒烟 ---------- */
+/* ---------- 9. 双语错误码：message 恒定中文，code/vars 供界面翻译 ---------- */
+{
+  const cases = [
+    ['sin(x)+', 'incomplete'],
+    ['sin', 'needParen'],
+    ['y', 'unknownLetter'],
+    ['x)', 'trailingOp'],
+    ['()', 'missingOperand'],
+    ['x^^2', 'missingOperand'],
+    ['2..3', 'num'],
+  ];
+  for (const [bad, code] of cases) {
+    let e = null;
+    try { E.parse(bad); } catch (err) { e = err; }
+    ok(e !== null && e.code === code, `错误码 ${bad} → ${code}`, e ? ('得到 ' + e.code) : '未抛错');
+  }
+  let e2 = null;
+  try { E.derivativeOf('floor(x)', 1); } catch (err) { e2 = err; }
+  ok(e2 !== null && e2.code === 'nonDiff' && e2.vars.fn === 'floor', 'nonDiff 错误码带函数名', e2 ? e2.code : 'null');
+  ok(e2.message.includes('不可导'), 'nonDiff 中文 message 不变');
+}
+ok(true, '分隔');
 {
   const r = E.derivativeOf('sin(x)cos(x)', 1);
   const html = E.toHTML({ t: 'call', fn: 'ln', a: r.result }).s;
@@ -230,6 +251,37 @@ for (const bad of BAD) {
   let mixErr = null;
   try { E.derivativeOf('x^2 + floor(x)', 1); } catch (e) { mixErr = e.message; }
   ok(mixErr !== null && mixErr.includes('floor'), 'x^2 + floor(x) 求导报 floor 不可导', mixErr || '未抛错');
+}
+
+/* ---------- 10. 中英双语文案（与 image-metadata-cleaner 同模式） ---------- */
+{
+  const I18N = require('../assets/js/i18n.js');
+  ok(I18N.getLang() === 'zh', '默认中文');
+  ok(I18N.t('brand.name') === '函数图像生成器', '中文 brand', I18N.t('brand.name'));
+  I18N.setLang('en');
+  ok(I18N.t('brand.name') === 'Function Grapher', '英文 brand', I18N.t('brand.name'));
+  ok(I18N.t('hero.badge.oss') === 'Free · Open source · No ads', '英文 badge');
+  ok(I18N.t('faq.q1') === 'How are the graphs drawn?', '英文 FAQ');
+  ok(I18N.t('faq.a3').includes('238'), '英文测试数同步', I18N.t('faq.a3').slice(0, 80));
+  I18N.setLang('zh');
+  // 占位符
+  ok(I18N.t('toast.maxFns', { n: 6 }) === '最多同时画 6 个函数', 'zh 占位符', I18N.t('toast.maxFns', { n: 6 }));
+  I18N.setLang('en');
+  ok(I18N.t('toast.maxFns', { n: 6 }) === 'Up to 6 functions at once', 'en 占位符', I18N.t('toast.maxFns', { n: 6 }));
+  ok(I18N.t('d.copyDone', { text: 'cos(x)' }) === 'Copied: cos(x)', 'en 多占位符');
+  // 未知 key 回落
+  ok(I18N.t('no.such.key') === 'no.such.key', '未知 key 回落自身');
+  I18N.setLang('zh');
+  // 双语 key 对齐校验：直接读文件比对两个 dict 的键（防止漏翻）
+  const fs = require('fs');
+  const src = fs.readFileSync(require('path').join(__dirname, '..', 'assets', 'js', 'i18n.js'), 'utf8');
+  const zhBlock = src.slice(src.indexOf('zh: {'), src.indexOf('en: {'));
+  const enBlock = src.slice(src.indexOf('en: {'), src.indexOf('const LANG_KEY'));
+  const keysOf = (block) => (block.match(/'[a-zA-Z0-9.]+':/g) || []).map(s => s.slice(1, -2));
+  const zhK = keysOf(zhBlock), enK = keysOf(enBlock);
+  ok(zhK.length === enK.length, '中英 key 数量一致', `zh=${zhK.length} en=${enK.length}`);
+  const missing = zhK.filter(k => !enK.includes(k));
+  ok(missing.length === 0, 'en 无缺 key', missing.slice(0, 5).join(','));
 }
 
 console.log(`\n通过 ${passed} 项，失败 ${failed} 项`);
