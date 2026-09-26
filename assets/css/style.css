@@ -362,7 +362,7 @@ main {
   border: 1px solid var(--line);
   cursor: crosshair;
   touch-action: none;
-  background: rgba(0, 0, 0, 0.35);
+  background: #15161a;
 }
 
 .tooltip {

@@ -8,10 +8,11 @@
   'use strict';
 
   const SAMPLES = 900;
-  const BG = '#0d1524';
-  const GRID = 'rgba(148, 163, 184, 0.13)';
-  const GRID_STRONG = 'rgba(148, 163, 184, 0.28)';
-  const TEXT = 'rgba(203, 213, 225, 0.75)';
+  // 画布底色取贴近主题的炭灰（#0a0a0c 玻璃面板的实体感），网格/文字用中性灰白
+  const BG = '#15161a';
+  const GRID = 'rgba(255, 255, 255, 0.07)';
+  const GRID_STRONG = 'rgba(255, 255, 255, 0.18)';
+  const TEXT = 'rgba(233, 236, 242, 0.75)';
 
   function niceStep(span, target) {
     const raw = span / target;
@@ -203,7 +204,7 @@
         ctx.beginPath();
         ctx.arc(mapX(t.a), mapY(t.y0), 4, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = '#0d1524';
+        ctx.strokeStyle = '#15161a';
         ctx.lineWidth = 1.5;
         ctx.stroke();
       }
