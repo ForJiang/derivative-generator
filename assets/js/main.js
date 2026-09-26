@@ -270,7 +270,7 @@
   function renderEmpty() {
     els.fnEmpty.hidden = state.fns.length > 0;
     els.addFn.disabled = state.fns.length >= MAX_FNS;
-    els.fnCount.textContent = state.fns.length + ' / ' + MAX_FNS + ' 条';
+    els.fnCount.textContent = T.t('fn.count', { n: state.fns.length, m: MAX_FNS });
   }
 
   /* ---------- 计算日志（终端窗口，与 image-metadata-cleaner 同形态） ---------- */
@@ -684,6 +684,7 @@
     for (const f of state.fns) {
       if (f.el) f.el.querySelector('.fn-input').placeholder = T.t('fn.placeholder');
     }
+    renderEmpty(); // 计数器等含数字的动态文本
     updateLogToggleLabel();
     computeAnalysis();
     renderPlot();
