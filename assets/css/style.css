@@ -1,0 +1,524 @@
+/* 导函数生成器 - 深色主题样式 */
+
+:root {
+  --bg: #0b0f17;
+  --card: rgba(255, 255, 255, 0.035);
+  --card-border: rgba(255, 255, 255, 0.09);
+  --text: #e8edf6;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+  --accent2: #a78bfa;
+  --orange: #fb923c;
+  --danger: #fda4af;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+.bg-glow {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(600px 400px at 12% -5%, rgba(56, 189, 248, 0.13), transparent 65%),
+    radial-gradient(700px 500px at 90% 0%, rgba(167, 139, 250, 0.11), transparent 65%),
+    radial-gradient(800px 600px at 50% 110%, rgba(56, 189, 248, 0.06), transparent 70%);
+}
+
+/* ---------- 头部 ---------- */
+
+header {
+  text-align: center;
+  padding: clamp(36px, 7vw, 64px) 16px 10px;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 4.5vw, 2.3rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: linear-gradient(120deg, #f1f5fb 30%, var(--accent) 75%, var(--accent2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.subtitle {
+  margin: 0.6em auto 0;
+  max-width: 40em;
+  color: var(--muted);
+  font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+}
+
+/* ---------- 布局 ---------- */
+
+main {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 16px 16px;
+}
+
+.card {
+  margin-top: 18px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 20px 22px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 0.9em;
+}
+
+h2 {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.hidden { display: none !important; }
+
+/* ---------- 数学排版 ---------- */
+
+.math {
+  font-family: Georgia, "Times New Roman", "STIX Two Math", serif;
+  font-style: italic;
+  font-size: 1.28rem;
+  line-height: 1.9;
+  word-break: break-word;
+}
+
+.math .num, .math .fn, .math .op, .math .paren, .math .ddx {
+  font-style: normal;
+}
+
+.math .v { margin: 0 0.04em; }
+
+.math sup {
+  font-size: 0.66em;
+  vertical-align: 0.55em;
+  line-height: 0;
+}
+
+.math .gap { display: inline-block; width: 0.14em; }
+
+.frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  margin: 0 0.18em;
+  font-size: 0.94em;
+  line-height: 1.25;
+}
+
+.frac .fnum { padding: 0 0.3em; }
+.frac .fden { padding: 0 0.3em; border-top: 1.4px solid currentColor; }
+
+.rad { white-space: nowrap; }
+.rad-body { border-top: 1.4px solid currentColor; padding: 0 0.18em; margin-left: -1px; }
+
+.ddx { font-size: 0.82em; opacity: 0.92; }
+
+.math-inline {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+}
+
+/* ---------- 输入卡片 ---------- */
+
+.fx-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fx-label {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 1.25rem;
+  white-space: nowrap;
+  color: var(--accent);
+}
+
+#fx {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 1.02rem;
+  padding: 0.62em 0.9em;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+#fx:focus {
+  border-color: rgba(56, 189, 248, 0.65);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+#fx::placeholder { color: rgba(148, 163, 184, 0.55); }
+
+.err {
+  display: none;
+  margin-top: 10px;
+  padding: 0.5em 0.9em;
+  border-radius: 8px;
+  color: var(--danger);
+  background: rgba(244, 63, 94, 0.09);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  font-size: 0.92rem;
+}
+
+.err.show { display: block; }
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.chip {
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  background: rgba(56, 189, 248, 0.07);
+  color: #bfe6fa;
+  border-radius: 999px;
+  padding: 0.3em 0.85em;
+  font-family: var(--mono);
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.chip:hover { background: rgba(56, 189, 248, 0.16); border-color: rgba(56, 189, 248, 0.5); }
+
+.help {
+  margin-top: 14px;
+  font-size: 0.9rem;
+}
+
+.help summary {
+  cursor: pointer;
+  color: var(--muted);
+  user-select: none;
+}
+
+.help summary:hover { color: var(--text); }
+
+.help ul {
+  margin: 0.6em 0 0.2em;
+  padding-left: 1.3em;
+  color: #b8c2d4;
+}
+
+.help li { margin: 0.25em 0; }
+
+.help code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 0.08em 0.4em;
+  border-radius: 5px;
+}
+
+/* ---------- 按钮 ---------- */
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: transform 0.12s, opacity 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.btn:active { transform: scale(0.96); }
+
+.btn.primary {
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  color: #08101e;
+  font-weight: 650;
+  padding: 0.62em 1.35em;
+}
+
+.btn.primary:hover { opacity: 0.92; }
+
+.btn.ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--muted);
+  padding: 0.5em 1em;
+}
+
+.btn.ghost:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.35); }
+
+.btn.small { font-size: 0.86rem; padding: 0.38em 0.9em; }
+.btn.tiny {
+  font-size: 0.85rem;
+  padding: 0.1em 0.55em;
+  border-radius: 7px;
+  line-height: 1.5;
+}
+
+/* ---------- 结果卡片 ---------- */
+
+.order-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.order-val {
+  min-width: 1.4em;
+  text-align: center;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.input-pretty {
+  color: var(--muted);
+  font-size: 1.05rem;
+  margin-bottom: 0.25em;
+  overflow-x: auto;
+}
+
+.result-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.result-label {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 1.28rem;
+  color: var(--orange);
+  white-space: nowrap;
+  padding-top: 0.25em;
+}
+
+.result-math {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 0.15em 0 0.3em;
+}
+
+.result-math::-webkit-scrollbar { height: 6px; }
+.result-math::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 3px; }
+
+/* ---------- 步骤 ---------- */
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.steps li {
+  border-left: 2px solid rgba(167, 139, 250, 0.35);
+  padding-left: 14px;
+  margin: 0.75em 0;
+}
+
+.step-rule {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--accent2);
+  margin-bottom: 0.1em;
+}
+
+.step-eq {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 1.08rem;
+  overflow-x: auto;
+  padding-bottom: 0.2em;
+}
+
+.step-eq .num, .step-eq .fn, .step-eq .op, .step-eq .paren, .step-eq .ddx { font-style: normal; }
+.step-eq sup { font-size: 0.66em; vertical-align: 0.55em; line-height: 0; }
+
+.step-more {
+  border-left-color: transparent !important;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* ---------- 绘图 ---------- */
+
+.plot-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.legend {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.legend i {
+  display: inline-block;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.legend i.dash {
+  background: repeating-linear-gradient(90deg, #a78bfa 0 4px, transparent 4px 7px);
+  height: 2px;
+}
+
+#plotWrap {
+  position: relative;
+}
+
+#plot {
+  display: block;
+  width: 100%;
+  height: 340px;
+  border-radius: 12px;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.tooltip {
+  position: absolute;
+  top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(10, 15, 26, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.45em 0.75em;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.tooltip.show { opacity: 1; }
+
+.tooltip i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  margin-right: 6px;
+}
+
+.tooltip .tt-x { color: var(--muted); }
+
+.tangent-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+  font-size: 0.95rem;
+}
+
+.tangent-row label { color: var(--muted); white-space: nowrap; }
+
+#tangentX {
+  width: 110px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  padding: 0.45em 0.7em;
+  outline: none;
+}
+
+#tangentX:focus { border-color: rgba(167, 139, 250, 0.6); }
+
+.tangent-info {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.tangent-info .strong {
+  color: #c4b5fd;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.plot-hint {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  color: rgba(148, 163, 184, 0.65);
+}
+
+/* ---------- 页脚 ---------- */
+
+footer {
+  text-align: center;
+  padding: 26px 16px 44px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+footer a:hover { color: #7dd3fc; }
+
+/* ---------- 响应式 ---------- */
+
+@media (max-width: 560px) {
+  .card { padding: 16px; border-radius: 14px; }
+  #plot { height: 270px; }
+  .fx-row { flex-wrap: wrap; }
+  .fx-row .btn.primary { flex: 1; }
+  .math { font-size: 1.15rem; }
+  .result-label { font-size: 1.15rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.7);
+  outline-offset: 2px;
+}
