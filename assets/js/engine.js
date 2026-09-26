@@ -66,7 +66,9 @@
     'asinh', 'acosh', 'atanh', 'asin', 'acos', 'atan',
     'sinh', 'cosh', 'tanh', 'sqrt', 'cbrt',
     'sin', 'cos', 'tan', 'cot', 'sec', 'csc',
-    'log2', 'log', 'ln', 'exp', 'abs', 'lg'
+    'floor', 'round',
+    'log2', 'log', 'ln', 'exp', 'abs', 'lg',
+    'ceil', 'sign', 'sinc'
   ];
   // 贪心最长匹配用，长的在前
   const KNOWN_WORDS = FUNCTION_NAMES.concat(['pi', 'e']).sort(function (a, b) { return b.length - a.length; });
@@ -242,7 +244,9 @@
     sinh: Math.sinh, cosh: Math.cosh, tanh: Math.tanh,
     asinh: Math.asinh, acosh: Math.acosh, atanh: Math.atanh,
     ln: Math.log, log: Math.log10, lg: Math.log10, log2: Math.log2,
-    exp: Math.exp, sqrt: Math.sqrt, cbrt: Math.cbrt, abs: Math.abs
+    exp: Math.exp, sqrt: Math.sqrt, cbrt: Math.cbrt, abs: Math.abs,
+    floor: Math.floor, ceil: Math.ceil, round: Math.round, sign: Math.sign,
+    sinc: function (x) { return x === 0 ? 1 : Math.sin(x) / x; }
   };
 
   function evaluate(node, x) {
@@ -287,7 +291,13 @@
     exp:   { d: (u, D) => mul(call('exp', u), D(u)) },
     sqrt:  { d: (u, D) => div(D(u), mul(num(2), call('sqrt', u))) },
     cbrt:  { d: (u, D) => div(D(u), mul(num(3), pow(call('cbrt', u), num(2)))) },
-    abs:   { d: (u, D) => div(mul(D(u), u), call('abs', u)) }
+    abs:   { d: (u, D) => div(mul(D(u), u), call('abs', u)) },
+    sinc:  { d: (u, D) => div({ t: 'sub', a: mul(mul(call('cos', u), D(u)), u), b: mul(call('sin', u), D(u)) }, pow(u, num(2))) },
+    // 阶梯/分段函数：图像可以画，但几乎处处不可导，符号求导没有意义
+    floor: { nonDiff: true },
+    ceil:  { nonDiff: true },
+    round: { nonDiff: true },
+    sign:  { nonDiff: true }
   };
 
   function ruleName(node) {
@@ -353,7 +363,14 @@
           b: div(mul(v, D(u)), u)
         });
       }
-      case 'call': return FUNCS[node.fn].d(node.a, D);
+      case 'call': {
+        const fdef = FUNCS[node.fn];
+        if (!fdef) return num(0);
+        if (fdef.nonDiff) {
+          throw new Error(node.fn + ' 是阶梯/分段函数，几乎处处不可导，不支持符号求导（图像仍可正常绘制）');
+        }
+        return fdef.d(node.a, D);
+      }
       default: return num(0);
     }
   }
@@ -391,7 +408,13 @@
           b: div(mul(v, hole(u)), u)
         });
       }
-      case 'call': return FUNCS[node.fn].d(node.a, hole);
+      case 'call': {
+        const fdef = FUNCS[node.fn];
+        if (!fdef || fdef.nonDiff) {
+          throw new Error(node.fn + ' 是阶梯/分段函数，几乎处处不可导，不支持符号求导（图像仍可正常绘制）');
+        }
+        return fdef.d(node.a, hole);
+      }
       case 'd': return node;
       default: return num(0);
     }

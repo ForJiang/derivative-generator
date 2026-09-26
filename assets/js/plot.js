@@ -89,28 +89,34 @@
     return { ymin, ymax };
   }
 
-  function drawCurve(ctx, r, mapX, mapY, ymin, ymax, color, width) {
+  function drawCurve(ctx, r, mapX, mapY, ymin, ymax, color, width, dash) {
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
+    if (dash) ctx.setLineDash(dash);
     ctx.beginPath();
     let pen = false;
     let prevY = NaN;
+    let prevPx = NaN, prevPy = NaN;
     const span = ymax - ymin;
+    const cssH = ctx.canvas.height / (window.devicePixelRatio || 1);
     for (let i = 0; i < r.xs.length; i++) {
       const y = r.ys[i];
-      if (!isFinite(y) || y < ymin - span * 2 || y > ymax + span * 2) { pen = false; prevY = y; continue; }
-      // 渐近线：相邻两点跳变远超画面且异号 → 断笔
-      if (pen && isFinite(prevY) && Math.abs(y - prevY) > span * 1.5 && y * prevY < 0) {
-        pen = false;
-      }
+      if (!isFinite(y) || y < ymin - span * 2 || y > ymax + span * 2) { pen = false; prevY = y; prevPx = NaN; continue; }
       const px = mapX(r.xs[i]), py = mapY(y);
+      if (pen && isFinite(prevY)) {
+        // 渐近线：相邻两点跳变远超画面且异号；阶梯跳变：近乎竖直的突跳（floor/ceil/sign）
+        const asymptote = Math.abs(y - prevY) > span * 1.5 && y * prevY < 0;
+        const steepJump = Math.abs(py - prevPy) > cssH * 0.05 && Math.abs(py - prevPy) > 20 * Math.abs(px - prevPx) + 2;
+        if (asymptote || steepJump) pen = false;
+      }
       if (!pen) { ctx.moveTo(px, py); pen = true; }
       else ctx.lineTo(px, py);
-      prevY = y;
+      prevY = y; prevPx = px; prevPy = py;
     }
     ctx.stroke();
+    if (dash) ctx.setLineDash([]);
   }
 
   function render(canvas, opts) {
@@ -178,7 +184,7 @@
 
     // 曲线
     opts.fns.forEach(function (f, i) {
-      drawCurve(ctx, results[i], mapX, mapY, ymin, ymax, f.color, f.width || 2);
+      drawCurve(ctx, results[i], mapX, mapY, ymin, ymax, f.color, f.width || 2, f.dash);
     });
 
     // 切线

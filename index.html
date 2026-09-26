@@ -1,113 +1,241 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>导函数生成器 · 在线符号求导</title>
-  <meta name="description" content="输入任意初等函数，即时生成导函数：支持三角、指数、对数、幂指函数，展示求导步骤，绘制函数与导函数图像，一键生成切线方程。纯浏览器本地计算。">
-  <meta name="theme-color" content="#0b0f17">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2338bdf8'/%3E%3Cstop offset='1' stop-color='%23a78bfa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='46' font-size='38' font-family='Georgia,serif' font-style='italic' fill='%230b0f17' text-anchor='middle'%3E%E2%88%82%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="assets/css/style.css?v=2">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>函数图像生成器 · 在线绘制任意函数图像 / 导数 / 切线</title>
+<meta name="description" content="在线绘制任意函数图像：多项式、三角、指数、对数、阶梯函数，支持多函数同图对比、符号求导、切线方程。纯浏览器本地计算，无需注册，数据不上传。" />
+<meta name="keywords" content="函数图像, 函数绘图, 符号求导, 导数, 切线方程, function grapher, online plotting" />
+<meta name="author" content="ForJiang" />
+<meta name="theme-color" content="#0a0a0c" />
+<meta name="color-scheme" content="dark" />
+<script>document.documentElement.classList.add('js')</script><!-- 入场动画前置标记：无 JS 时内容保持可见，不至于白屏 -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="函数图像生成器 · 在线绘制任意函数图像" />
+<meta property="og:description" content="输入表达式，立刻画出函数图像。多函数同图对比，一键符号求导与切线方程。全部在浏览器本地完成，不注册，不上传。" />
+<!-- 主图标内联 data URI：favicon 缓存按页面 URL 持久化，内联可保证每次加载都拿到当前设计（与 image-metadata-cleaner 同方案）；
+     圆角 + 斜向渐变底与姊妹站同一套——纯深色底在深色标签栏上看不出圆角，略亮的渐变底才让轮廓分明 -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232a2c33'/%3E%3Cstop offset='1' stop-color='%23101114'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cpath d='M10 55V10M6 54h48' fill='none' stroke='%236b7280' stroke-width='3.2' stroke-linecap='round' opacity='.8'/%3E%3Cpath d='M10 47C22 47 26 17 54 17' fill='none' stroke='%23f2f3f6' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E" sizes="32x32" />
+<link rel="stylesheet" href="assets/css/style.css?v=3" />
 </head>
 <body>
-  <div class="bg-glow" aria-hidden="true"></div>
 
-  <header>
-    <h1>导函数生成器</h1>
-    <p class="subtitle">输入函数，即时生成导函数 · 展示求导步骤 · 绘制图像 · 生成切线方程</p>
-  </header>
+<canvas id="bgCanvas" aria-hidden="true"></canvas>
 
-  <main>
-    <section class="card input-card">
-      <div class="fx-row">
-        <label class="fx-label" for="fx"><span class="math-inline">f(x) =</span></label>
-        <input id="fx" spellcheck="false" autocomplete="off" autocapitalize="off"
-               placeholder="例如 sin(x)·x^2 或 x^x" value="sin(x)·x^2">
-        <button id="go" class="btn primary">求导</button>
+<header class="topbar">
+  <a class="brand" href="./">
+    <span class="brand-text">
+      <strong>函数图像生成器</strong>
+      <small>绘图 · 求导 · 切线</small>
+    </span>
+  </a>
+  <div class="topbar-actions">
+    <a class="icon-btn" href="https://github.com/ForJiang/derivative-generator" target="_blank" rel="noreferrer" title="GitHub">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.34-1.28-1.7-1.28-1.7-1.05-.71.08-.7.08-.7 1.16.09 1.77 1.2 1.77 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.27.73-1.56-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.2-3.1-.13-.29-.52-1.46.1-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.24 2.76.12 3.05.75.81 1.2 1.84 1.2 3.1 0 4.43-2.7 5.4-5.26 5.68.42.36.79 1.07.79 2.16v3.2c0 .31.2.66.8.55A11.5 11.5 0 0 0 23.5 12A11.5 11.5 0 0 0 12 .5Z"/></svg>
+    </a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>输入表达式，立刻画出函数图像</h1>
+    <p>多项式、三角、指数、对数、阶梯函数都能画——最多 6 条曲线同图对比，选中任意一条即可符号求导、生成切线方程。全部计算在浏览器里完成，不注册，不上传。</p>
+    <div class="hero-badges">
+      <span class="badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6z"/><path d="M9.2 12.2l2 2 3.6-3.8"/></svg>
+        <span>100% 本地计算</span>
+      </span>
+      <span class="badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+        <span>多函数 · 导数 · 切线</span>
+      </span>
+      <span class="badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.2 6-5.5-3-5.5 3 1.2-6L3.2 9.4l6.1-.8z"/></svg>
+        <span>免费 · 开源 · 无广告</span>
+      </span>
+    </div>
+  </section>
+
+  <section class="panel" data-reveal>
+    <div class="panel-head">
+      <h2>函数</h2>
+      <span class="ph-sub" id="fnCount">0 / 6 条</span>
+    </div>
+
+    <ul class="fn-list" id="fnList"></ul>
+    <p class="fn-empty" id="fnEmpty" hidden>还没有函数——从下面的函数库里挑一个，或点上方按钮添加。</p>
+
+    <div class="fn-actions-btns">
+      <button class="btn btn-ghost" id="addFn" type="button">+ 添加函数</button>
+      <span class="an-hint">点击选中一行，即可对它求导、作切线</span>
+    </div>
+  </section>
+
+  <section class="panel" data-reveal>
+    <div class="panel-head">
+      <h2>函数图像</h2>
+      <div class="ph-tools">
+        <span class="legend" id="legend"></span>
+        <button class="btn-icon" id="zoomOut" type="button" title="缩小">−</button>
+        <button class="btn-icon" id="zoomIn" type="button" title="放大">+</button>
+        <button class="btn-icon" id="zoomReset" type="button" title="重置视图">⟳</button>
       </div>
-      <div id="err" class="err" role="alert"></div>
-      <div class="examples" id="examples" aria-label="示例">
-        <button class="chip" data-expr="x^2">x^2</button>
-        <button class="chip" data-expr="x^3 - 3x + 1">x^3 − 3x + 1</button>
-        <button class="chip" data-expr="sin(x)cos(x)">sin(x)cos(x)</button>
-        <button class="chip" data-expr="x^x">x^x</button>
-        <button class="chip" data-expr="e^x·sin(x)">e^x·sin(x)</button>
-        <button class="chip" data-expr="ln(x)/x">ln(x)/x</button>
-        <button class="chip" data-expr="sqrt(x^2 + 1)">√(x²+1)</button>
+    </div>
+
+    <div class="plot-wrap">
+      <canvas id="plot" aria-label="函数图像，支持滚轮缩放、拖拽平移、悬停查看数值"></canvas>
+      <div class="tooltip" id="tooltip"></div>
+    </div>
+    <p class="plot-hint">滚轮缩放 · 拖拽平移 · 双击复位 · 悬停查看数值 · 曲线在函数没有定义的地方自动断开</p>
+  </section>
+
+  <section class="panel" data-reveal>
+    <div class="panel-head">
+      <h2>分析</h2>
+      <span class="ph-sub" id="anTitle">点击上方任一函数，对它求导、作切线</span>
+    </div>
+
+    <div class="analysis-grid">
+      <div class="an-card">
+        <div class="an-title">
+          <h3>求导</h3>
+          <div class="order-ctrl" aria-label="导数阶数">
+            <span>第</span>
+            <button class="btn-icon" id="orderMinus" type="button" title="降低阶数">−</button>
+            <span class="order-val" id="orderVal">1</span>
+            <button class="btn-icon" id="orderPlus" type="button" title="提高阶数">+</button>
+            <span>阶</span>
+          </div>
+        </div>
+        <div class="result-row">
+          <span class="result-label" id="resultLabel">f′(x)</span>
+          <span class="result-math math" id="resultMath"></span>
+        </div>
+        <p class="an-hint" id="resultHint" hidden></p>
+        <div class="fn-actions-btns">
+          <button class="btn-icon" id="copyBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
+            复制
+          </button>
+          <button class="btn-icon" id="derivToggle" type="button">在图中显示导函数</button>
+        </div>
+        <div class="steps" id="stepsCard" hidden>
+          <h3 style="margin:0 0 4px;font-size:12.5px;color:var(--text-3)">求导过程</h3>
+          <ol class="steps" id="stepsList"></ol>
+        </div>
+      </div>
+
+      <div class="an-card">
+        <h3>切线</h3>
+        <div class="tangent-row">
+          <label for="tangentX">切点 x₀ =</label>
+          <input id="tangentX" type="text" value="1" spellcheck="false" autocomplete="off">
+          <button class="btn-icon" id="tangentBtn" type="button">作切线</button>
+          <button class="btn-icon" id="tangentClear" type="button">清除</button>
+          <p class="tangent-info" id="tangentInfo">输入切点的横坐标，画出切线并给出方程；这里也支持表达式，比如 pi/2。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" data-reveal>
+    <div class="panel-head">
+      <h2>函数库</h2>
+      <span class="ph-sub">点一下即以新曲线的形式加入上方列表</span>
+    </div>
+
+    <div class="lib" id="library">
+      <div class="lib-cat">
+        <span>基础</span>
+        <button class="chip" data-expr="x^2">x²</button>
+        <button class="chip" data-expr="x^3 - x + 1">x³ − x + 1</button>
+        <button class="chip" data-expr="1/x">1/x</button>
+        <button class="chip" data-expr="sqrt(x)">√x</button>
+        <button class="chip" data-expr="abs(x)">abs(x)</button>
+        <button class="chip" data-expr="floor(x)">floor(x)</button>
+      </div>
+      <div class="lib-cat">
+        <span>三角</span>
+        <button class="chip" data-expr="sin(x)">sin(x)</button>
         <button class="chip" data-expr="tan(x)">tan(x)</button>
-        <button class="chip" data-expr="1/(1 + x^2)">1/(1+x²)</button>
+        <button class="chip" data-expr="sin(x)/x">sinc 型</button>
+        <button class="chip" data-expr="sin(x)cos(x)">sin(x)cos(x)</button>
+      </div>
+      <div class="lib-cat">
+        <span>指数 对数</span>
+        <button class="chip" data-expr="e^x">eˣ</button>
         <button class="chip" data-expr="exp(-x^2)">e^(−x²)</button>
-        <button class="chip" data-expr="x·ln(x)">x·ln(x)</button>
+        <button class="chip" data-expr="ln(x)">ln(x)</button>
+        <button class="chip" data-expr="2^x">2ˣ</button>
+        <button class="chip" data-expr="log(x)">log(x)</button>
+      </div>
+      <div class="lib-cat">
+        <span>进阶</span>
+        <button class="chip" data-expr="x^x">xˣ</button>
+        <button class="chip" data-expr="x·sin(x)">x·sin(x)</button>
+        <button class="chip" data-expr="e^x·sin(x)">eˣ·sin(x)</button>
+        <button class="chip" data-expr="1/(1 + x^2)">1/(1+x²)</button>
         <button class="chip" data-expr="asin(x/2)">asin(x/2)</button>
       </div>
-      <details class="help">
-        <summary>支持哪些写法？</summary>
-        <ul>
-          <li>运算：<code>+ - * / ^</code>，乘号可省略（<code>2x</code>、<code>2sin(x)</code>、<code>x(x+1)</code> 均可）</li>
-          <li>函数：<code>sin cos tan cot sec csc</code>、<code>asin acos atan</code>、<code>sinh cosh tanh</code>、<code>ln log lg log2</code>、<code>exp sqrt cbrt abs</code></li>
-          <li>常量：<code>e</code>（自然底数）、<code>pi</code> 或 <code>π</code>；只支持变量 <code>x</code></li>
-          <li><code>log(x)</code> 是以 10 为底，<code>ln(x)</code> 是自然对数；<code>e^x</code> 也可写成 <code>exp(x)</code></li>
-          <li>也可以直接粘贴：<code>√(x²+1)</code>、<code>π·x²</code>、<code>2**x</code> 这类写法会自动转换</li>
-        </ul>
-      </details>
-    </section>
+    </div>
 
-    <section class="card result-card">
-      <div class="card-head">
-        <h2>求导结果</h2>
-        <div class="order-ctrl" aria-label="导数阶数">
-          <span>第</span>
-          <button id="orderMinus" class="btn ghost tiny" aria-label="降低阶数">−</button>
-          <span id="orderVal" class="order-val">1</span>
-          <button id="orderPlus" class="btn ghost tiny" aria-label="提高阶数">+</button>
-          <span>阶导数</span>
-        </div>
-      </div>
-      <div id="inputPretty" class="math input-pretty"></div>
-      <div class="result-row">
-        <span id="resultLabel" class="result-label">f′(x)</span>
-        <span id="resultMath" class="math result-math"></span>
-        <button id="copyBtn" class="btn ghost small">复制</button>
-      </div>
-    </section>
+    <details class="faq" style="margin-top:4px">
+      <summary>还能写哪些表达式？点开看语法支持</summary>
+      <p>
+        运算 <code>+ - * / ^</code>，乘号可以省略：<code>2x</code>、<code>2sin(x)</code>、<code>x(x+1)</code> 都合法。
+        函数支持 <code>sin cos tan cot sec csc</code>、<code>asin acos atan</code>、<code>sinh cosh tanh</code>、
+        <code>ln log lg log2</code>、<code>exp sqrt cbrt abs</code>、<code>floor ceil round sign sinc</code>；
+        常量有 <code>e</code> 和 <code>pi</code>（或 <code>π</code>）。
+        也可以直接粘贴 <code>√(x²+1)</code>、<code>π·x²</code>、<code>e^(-x²)</code> 这类写法，会自动转换。
+        目前只支持变量 <code>x</code>；<code>log(x)</code> 是以 10 为底，<code>ln(x)</code> 是自然对数。
+      </p>
+    </details>
+  </section>
 
-    <section class="card" id="stepsCard">
-      <div class="card-head"><h2>求导过程</h2></div>
-      <ol id="stepsList" class="steps"></ol>
-    </section>
+  <section class="faq" data-reveal>
+    <h2>常见问题</h2>
+    <details data-reveal>
+      <summary><span>图像是怎么画出来的？</span></summary>
+      <p>浏览器把表达式解析成语法树，在屏幕宽度上逐点采样求值，用 Canvas 连成曲线。缩放和平移只是改变采样窗口，所以每一次操作都会重新计算，而不是拉伸旧图像。</p>
+    </details>
+    <details data-reveal>
+      <summary><span>为什么曲线在某些地方断开了？</span></summary>
+      <p>因为函数在那里没有定义：tan 的渐近线、1/x 在 x=0、floor 的整数跳变。断开恰恰说明画对了。函数值发散到无穷大的地方也会断开。</p>
+    </details>
+    <details data-reveal>
+      <summary><span>求导是精确的吗？</span></summary>
+      <p>是符号推导——求和差法则、乘积法则、商法则、链式法则逐层展开，不是数值近似。结果经过 238 项自动化测试与数值差分交叉验证。化简程度有限，形式可能和教科书略有差异，但数值等价。</p>
+    </details>
+    <details data-reveal>
+      <summary><span>我的输入会被上传吗？</span></summary>
+      <p>不会。这个站点没有后端，所有解析、求导、绘图都发生在你的浏览器里；关闭页面后什么都不会留下。</p>
+    </details>
+    <details data-reveal>
+      <summary><span>为什么 floor、sign 画不出导数？</span></summary>
+      <p>它们是阶梯/分段函数，除跳变点外导数恒为 0，属于「几乎处处不可导」，符号求导没有教学意义——图像仍然可以正常绘制和缩放。</p>
+    </details>
+  </section>
+</main>
 
-    <section class="card plot-card">
-      <div class="card-head">
-        <h2>函数图像</h2>
-        <div class="plot-tools">
-          <span class="legend"><i style="background:#38bdf8"></i>f(x)</span>
-          <span class="legend"><i style="background:#fb923c"></i><span id="legendDf">f′(x)</span></span>
-          <span class="legend"><i class="dash"></i>切线</span>
-          <button id="zoomOut" class="btn ghost tiny" aria-label="缩小">−</button>
-          <button id="zoomIn" class="btn ghost tiny" aria-label="放大">+</button>
-          <button id="zoomReset" class="btn ghost tiny" aria-label="重置视图">⟳</button>
-        </div>
-      </div>
-      <div id="plotWrap">
-        <canvas id="plot" aria-label="函数与导函数图像，支持滚轮缩放、拖拽平移、悬停查看数值"></canvas>
-        <div id="tooltip" class="tooltip"></div>
-      </div>
-      <div class="tangent-row">
-        <label for="tangentX">切线 x₀ =</label>
-        <input id="tangentX" value="1" spellcheck="false" autocomplete="off">
-        <button id="tangentBtn" class="btn ghost">作切线</button>
-        <div id="tangentInfo" class="tangent-info"></div>
-      </div>
-      <p class="plot-hint">滚轮缩放 · 拖拽平移 · 双击复位 · 悬停查看数值</p>
-    </section>
-  </main>
+<footer>
+  <span>无服务器 · 无日志 · 无追踪</span>
+  <span><a href="https://github.com/ForJiang/derivative-generator" target="_blank" rel="noreferrer">GitHub</a> · <a href="https://github.com/ForJiang/derivative-generator/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT License</a> · 用 HTML + Canvas + WebGL 手工制作</span>
+</footer>
 
-  <footer>
-    <p>纯前端本地计算，不上传任何数据 · <a href="https://github.com/ForJiang/derivative-generator" target="_blank" rel="noopener">GitHub 仓库</a></p>
-  </footer>
+<div class="toasts" id="toasts" aria-live="polite"></div>
 
-  <script src="assets/js/engine.js?v=2"></script>
-  <script src="assets/js/plot.js?v=2"></script>
-  <script src="assets/js/main.js?v=2"></script>
+<noscript>
+  <div style="text-align:center;padding:24px;color:#f2f3f6">本工具需要在浏览器中启用 JavaScript。</div>
+</noscript>
+
+<script src="assets/js/wave-bg.js?v=1"></script>
+<script src="assets/js/reveal.js?v=1"></script>
+<script src="assets/js/engine.js?v=3"></script>
+<script src="assets/js/plot.js?v=3"></script>
+<script src="assets/js/main.js?v=3"></script>
+<script>
+  /* 启动 WebGL 正弦波背景；环境不支持时 wave-bg 自身会保留 CSS 兜底 */
+  if (window.startWaveBackground) window.startWaveBackground(document.getElementById('bgCanvas'));
+</script>
 </body>
 </html>

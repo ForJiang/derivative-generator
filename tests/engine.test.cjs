@@ -198,6 +198,40 @@ for (const bad of BAD) {
   ok(E.toHTML(r.result).s.includes('sin'), '结果 HTML 含 sin');
 }
 
+/* ---------- 8. 新增绘图函数（floor/ceil/round/sign/sinc） ---------- */
+{
+  const ev = (src, x) => E.evaluate(E.parse(src), x);
+  ok(ev('floor(2.7)', 0) === 2, 'floor(2.7)=2', ev('floor(2.7)', 0));
+  ok(ev('floor(-2.1)', 0) === -3, 'floor(-2.1)=-3', ev('floor(-2.1)', 0));
+  ok(ev('ceil(1.2)', 0) === 2, 'ceil(1.2)=2', ev('ceil(1.2)', 0));
+  ok(ev('ceil(-1.2)', 0) === -1, 'ceil(-1.2)=-1', ev('ceil(-1.2)', 0));
+  ok(ev('round(2.5)', 0) === 3, 'round(2.5)=3', ev('round(2.5)', 0));
+  ok(ev('sign(-3)', 0) === -1, 'sign(-3)=-1', ev('sign(-3)', 0));
+  ok(ev('sinc(0)', 0) === 1, 'sinc(0)=1', ev('sinc(0)', 0));
+  ok(close(ev('sinc(x)', 1.5), Math.sin(1.5) / 1.5, 1e-12), 'sinc(1.5)=sin(1.5)/1.5');
+  ok(ev('floor(x) + ceil(x)', 1.5) === 3, 'floor+ceil 组合求值');
+  // sinc 可导，数值验证
+  for (const x of [0.5, 1.7, -1.2]) {
+    const s = symDeriv('sinc(x)', x);
+    const n = numDeriv('sinc(x)', x, 1e-5);
+    ok(close(s, n, 1e-4), `数值验证 sinc(x) @ x=${x}`, `符号=${s} 差分=${n}`);
+  }
+  // sinc 复合
+  const s2 = symDeriv('sinc(2x)', 0.7);
+  const n2 = numDeriv('sinc(2x)', 0.7, 1e-5);
+  ok(close(s2, n2, 1e-4), '数值验证 sinc(2x) @ x=0.7', `符号=${s2} 差分=${n2}`);
+  // 不可导函数求导应报友好错误
+  for (const bad of ['floor(x)', 'sign(x)', 'ceil(x)', 'round(x)', 'floor(2x + 1)']) {
+    let threw = null;
+    try { E.derivativeOf(bad, 1); } catch (e) { threw = e.message; }
+    ok(threw !== null && threw.includes('不可导'), `求导 ${bad} 应报不可导`, threw || '未抛错');
+  }
+  // 与 floor 组合的可导部分：错误信息可读即可（整体不可导）
+  let mixErr = null;
+  try { E.derivativeOf('x^2 + floor(x)', 1); } catch (e) { mixErr = e.message; }
+  ok(mixErr !== null && mixErr.includes('floor'), 'x^2 + floor(x) 求导报 floor 不可导', mixErr || '未抛错');
+}
+
 console.log(`\n通过 ${passed} 项，失败 ${failed} 项`);
 if (failures.length) {
   console.log('\n失败明细:');
