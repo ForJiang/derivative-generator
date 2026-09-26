@@ -24,7 +24,8 @@
     copyBtn: $('copyBtn'), stepsCard: $('stepsCard'), stepsList: $('stepsList'),
     derivToggle: $('derivToggle'),
     tangentX: $('tangentX'), tangentBtn: $('tangentBtn'), tangentClear: $('tangentClear'), tangentInfo: $('tangentInfo'),
-    toasts: $('toasts')
+    toasts: $('toasts'),
+    logBody: $('logBody'), logCount: $('logCount'), logClear: $('logClear'), logToggle: $('logToggle')
   };
 
   /* ---------- 状态 ---------- */
@@ -71,9 +72,15 @@
 
   /* ---------- 函数列表 ---------- */
 
+  function logParseResult(f, action) {
+    if (f.err) log('err', action + ' ' + fnLabel(f), f.err);
+    else log('ok', action + ' ' + fnLabel(f), f.src || '(空)');
+  }
+
   function addFunction(src, skipSelect) {
     if (state.fns.length >= MAX_FNS) {
       showToast('最多同时画 ' + MAX_FNS + ' 个函数');
+      log('warn', '添加函数失败', '已达上限 ' + MAX_FNS + ' 条');
       return null;
     }
     const idx = state.fns.length;
@@ -82,14 +89,16 @@
       src: src || '',
       ast: null,
       err: null,
+      lastErr: null,
       visible: true,
       color: PALETTE[idx % PALETTE.length],
       el: null
     };
     state.fns.push(f);
     buildFnRow(f);
+    log('cmd', '添加函数 ' + 'f' + SUBSCRIPTS[idx], src || '(空)');
     if (!src) setTimeout(function () { f.el.querySelector('.fn-input').focus(); }, 0);
-    tryParseFn(f);
+    tryParseFn(f, true);
     if (!skipSelect) selectFn(f.id);
     renderEmpty();
     return f;
@@ -98,6 +107,8 @@
   function removeFn(id) {
     const i = state.fns.findIndex(function (f) { return f.id === id; });
     if (i < 0) return;
+    const f = state.fns[i];
+    log('cmd', '删除函数', fnLabel(f) + ' · ' + (f.src || '(空)'));
     state.fns.splice(i, 1);
     for (let k = 0; k < state.fns.length; k++) state.fns[k].el.style.setProperty('--fn-color', PALETTE[k % PALETTE.length]);
     if (state.tangent && state.selectedId === id) { state.tangent = null; els.tangentInfo.textContent = ''; }
@@ -109,20 +120,27 @@
   function selectFn(id) {
     state.selectedId = id;
     for (const f of state.fns) f.el.classList.toggle('selected', f.id === id);
+    const sf = selectedFn();
+    if (sf) log('info', '选中 ' + fnLabel(sf), sf.src || '(空)');
     computeAnalysis();
   }
 
-  function tryParseFn(f) {
+  function tryParseFn(f, initial) {
     const src = f.src.trim();
     if (!src) { f.ast = null; f.err = null; f.errEl.textContent = ''; renderPlot(); return true; }
     try {
       f.ast = E.parse(src);
       f.err = null;
       f.errEl.textContent = '';
+      f.lastErr = null;
+      if (initial) logParseResult(f, '解析');
     } catch (e) {
       f.ast = null;
       f.err = e.message;
       f.errEl.textContent = (e.message || '解析失败');
+      if (initial) logParseResult(f, '解析');
+      else if (f.err !== f.lastErr) log('warn', '输入有误 ' + fnLabel(f), f.err);
+      f.lastErr = f.err;
     }
     renderPlot();
     if (f.id === state.selectedId) computeAnalysis();
@@ -189,10 +207,15 @@
         errEl.hidden = !f.err;
         if (ok) errEl.hidden = true;
       } else {
-        f.ast = null; f.err = null; errEl.hidden = true; renderPlot();
+        f.ast = null; f.err = null; f.lastErr = null; errEl.hidden = true; renderPlot();
       }
     });
-    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') input.blur(); });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { input.blur(); logParseResult(f, '保存'); }
+    });
+    input.addEventListener('blur', function () {
+      if (f.src.trim() && !f.err) logParseResult(f, '保存');
+    });
     input.addEventListener('click', function (e) { e.stopPropagation(); selectFn(f.id); });
 
     eyeBtn.addEventListener('click', function (e) {
@@ -200,6 +223,7 @@
       f.visible = !f.visible;
       li.classList.toggle('dim', !f.visible);
       eyeBtn.classList.toggle('active', f.visible);
+      log('info', (f.visible ? '显示 ' : '隐藏 ') + fnLabel(f), f.src || '(空)');
       renderPlot();
     });
     delBtn.addEventListener('click', function (e) {
@@ -219,6 +243,60 @@
     els.fnEmpty.hidden = state.fns.length > 0;
     els.addFn.disabled = state.fns.length >= MAX_FNS;
     els.fnCount.textContent = state.fns.length + ' / ' + MAX_FNS + ' 条';
+  }
+
+  /* ---------- 计算日志（终端窗口，与 image-metadata-cleaner 同形态） ---------- */
+
+  const logBus = window.createLogBus ? window.createLogBus() : null;
+  const fmtLog = window.formatLogLine;
+
+  function log(level, text, detail) {
+    if (!logBus) return;
+    logBus[level](text, detail);
+  }
+
+  if (logBus) {
+    logBus.subscribe(function (line) {
+      const empty = els.logBody.querySelector('.log-empty');
+      if (empty) empty.remove();
+      if (!line) return;
+      const div = document.createElement('div');
+      div.className = 'log-line log-lv-' + line.level;
+      div.textContent = fmtLog(line);
+      els.logBody.appendChild(div);
+      els.logBody.scrollTop = els.logBody.scrollHeight;
+      // 与 IMC 一致：环形缓冲满时丢弃最旧行（bus 已截断，这里同步 DOM）
+      while (els.logBody.children.length > 500) els.logBody.firstChild.remove();
+      els.logCount.textContent = String(logBus.getLines().length);
+    });
+  }
+
+  els.logClear.addEventListener('click', function () {
+    if (!logBus) return;
+    logBus.clear();
+    els.logBody.innerHTML = '';
+    els.logCount.textContent = '0';
+    const p = document.createElement('p');
+    p.className = 'log-empty';
+    p.textContent = '还没有处理记录，添加函数后这里会实时显示执行过程。';
+    els.logBody.appendChild(p);
+  });
+
+  els.logToggle.addEventListener('click', function () {
+    const collapsed = els.logBody.hasAttribute('hidden');
+    if (collapsed) {
+      els.logBody.removeAttribute('hidden');
+      els.logToggle.setAttribute('aria-expanded', 'true');
+      els.logToggle.textContent = '收起';
+    } else {
+      els.logBody.setAttribute('hidden', '');
+      els.logToggle.setAttribute('aria-expanded', 'false');
+      els.logToggle.textContent = '展开';
+    }
+  });
+
+  function fnLabel(f) {
+    return 'f' + SUBSCRIPTS[state.fns.indexOf(f)];
   }
 
   /* ---------- 绘图 ---------- */
@@ -359,9 +437,11 @@
       els.resultHint.textContent = e.message || '无法求导';
       els.resultHint.hidden = false;
       els.stepsCard.hidden = true;
+      log('warn', '求导失败 ' + label, e.message || '无法求导');
       return;
     }
     els.resultMath.innerHTML = '= ' + E.toHTML(r.result).s;
+    log('ok', '求导 ' + label, '第 ' + r.order + ' 阶 → ' + E.toText(r.result));
     renderSteps(r.steps);
     // 切线可画性检查
     if (state.tangent) applyTangent(state.tangent.a);
@@ -408,10 +488,12 @@
     if (!isFinite(a)) { els.tangentInfo.textContent = '切点 x 必须是一个确定的数'; state.tangent = null; return; }
     let k;
     try { k = E.evaluate(E.derivativeOf(sf.src, 1).result, a); } catch (e) {
+      log('warn', '切线失败 ' + fnLabel(sf), e.message);
       els.tangentInfo.textContent = e.message; state.tangent = null; renderPlot(); return;
     }
     const y0 = E.evaluate(sf.ast, a);
     if (!isFinite(y0) || !isFinite(k)) {
+      log('warn', '切线失败 ' + fnLabel(sf), '函数在 x = ' + fmtVal(a) + ' 处没有定义');
       els.tangentInfo.textContent = '函数在 x = ' + fmtVal(a) + ' 处没有定义，无法作切线';
       state.tangent = null;
       renderPlot();
@@ -425,12 +507,23 @@
       eqText = 'y = ' + (Math.abs(1 - k) < 1e-12 ? '' : (Math.abs(-1 - k) < 1e-12 ? '−' : fmtVal(k))) + 'x';
       if (Math.abs(b) > 1e-12) eqText += (b > 0 ? ' + ' : ' − ') + fmtVal(Math.abs(b));
     }
+    log('ok', '切线 ' + fnLabel(sf), 'x₀ = ' + fmtVal(a) + ' → ' + eqText);
     els.tangentInfo.innerHTML = '切点 (x₀, y₀) = (' + fmtVal(a) + ', ' + fmtVal(y0) + ')，斜率 k = f′(' + fmtVal(a) + ') = ' + fmtVal(k) +
       '<br>切线方程：<span class="math-inline strong">' + eqText + '</span>';
     renderPlot();
   }
 
   /* ---------- 视图交互 ---------- */
+
+  let lastViewLog = 0;
+
+  function logViewChange() {
+    const now = Date.now();
+    if (now - lastViewLog < 400) return; // 缩放/平移是连续动作，节流避免刷屏
+    lastViewLog = now;
+    const v = state.view;
+    log('info', '移动视图', 'x∈[' + parseFloat(v.xmin.toFixed(2)) + ', ' + parseFloat(v.xmax.toFixed(2)) + ']');
+  }
 
   function zoom(factor, cx) {
     const v = state.view;
@@ -441,11 +534,13 @@
     const ratio = (center - v.xmin) / span;
     v.xmin = center - ns * ratio;
     v.xmax = center + ns * (1 - ratio);
+    logViewChange();
     renderPlot();
   }
 
   function resetView() {
     state.view = { xmin: state.defaultView.xmin, xmax: state.defaultView.xmax };
+    log('cmd', '重置视图', 'x∈[' + parseFloat(state.view.xmin.toFixed(2)) + ', ' + parseFloat(state.view.xmax.toFixed(2)) + ']');
     renderPlot();
   }
 
@@ -465,6 +560,7 @@
   function setOrder(n) {
     state.order = Math.max(1, Math.min(8, n));
     els.orderVal.textContent = state.order;
+    log('cmd', '切换导数阶数', '第 ' + state.order + ' 阶');
     computeAnalysis();
   }
 
@@ -473,7 +569,7 @@
     if (!sf || !sf.ast) return;
     let text;
     try { text = E.toText(E.derivativeOf(sf.src, state.order).result); } catch (e) { showToast('当前函数不可导'); return; }
-    const done = function () { showToast('已复制：' + text); };
+    const done = function () { showToast('已复制：' + text); log('cmd', '复制导数', text); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(done, function () { showToast('复制失败，手动选一下吧'); });
     } else {
@@ -491,6 +587,7 @@
   els.derivToggle.addEventListener('click', function () {
     state.showDeriv = !state.showDeriv;
     els.derivToggle.classList.toggle('active', state.showDeriv);
+    log('cmd', '导函数叠加', state.showDeriv ? '开' : '关');
     renderPlot();
   });
 
@@ -519,6 +616,7 @@
       v.xmin -= ((e.clientX - dragLast.x) / rect.width) * span;
       v.xmax -= ((e.clientX - dragLast.x) / rect.width) * span;
       dragLast.x = e.clientX;
+      logViewChange();
     } else {
       dragLast.x = e.clientX;
     }
@@ -538,6 +636,7 @@
   els.tangentClear.addEventListener('click', function () {
     state.tangent = null;
     els.tangentInfo.textContent = '';
+    log('cmd', '清除切线', '');
     renderPlot();
   });
   els.tangentX.addEventListener('keydown', function (e) { if (e.key === 'Enter') els.tangentBtn.click(); });
@@ -549,6 +648,7 @@
 
   /* ---------- 启动 ---------- */
 
+  log('cmd', '打开页面', '载入 3 条示例函数 · 全部计算在本地完成');
   addFunction('sin(x)', true);
   addFunction('x^2/8 - 1.5', true);
   addFunction('e^(-x^2)', true);

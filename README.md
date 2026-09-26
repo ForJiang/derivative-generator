@@ -20,12 +20,14 @@
 ## 技术说明
 
 - 零依赖、零构建：HTML + CSS + 原生 JS，GitHub Pages 直接部署
-- 自研引擎 `assets/js/engine.js`：递归下降解析器 → AST → 求导规则 → 化简器 → 数学排版渲染（真分数、根号、上标），238 项测试与数值差分交叉验证
+- 自研引擎 `assets/js/engine.js`：递归下降解析器 → AST → 求导规则 → 化简器（同类项合并、幂折叠、分数约分）→ 数学排版渲染（真分数、根号、上标），238 项测试与数值差分交叉验证
 - 绘图 `assets/js/plot.js`：Canvas 逐点采样，箱线图胡须法自适应 y 范围（真实峰值不裁、渐近毛刺不炸），渐近线/阶梯跳变自动断笔
-- 设计与可视化语言对齐姊妹站 [image-metadata-cleaner](https://forjiang.github.io/image-metadata-cleaner/)：深色玻璃面板 + 自研 WebGL 正弦波流动背景（三条正弦波驱动 RGB 通道，无第三方 3D 库）
+- 设计与可视化语言对齐姊妹站 [image-metadata-cleaner](https://forjiang.github.io/image-metadata-cleaner/)：深色玻璃面板 + 自研 WebGL 正弦波流动背景（三条正弦波驱动 RGB 通道，无第三方 3D 库）、终端风格计算日志（`assets/js/log.js` 环形缓冲 500 条）、`data-reveal` 卡片入场动画
+- 站点图标：`tools/make_icons.py` 纯标准库光栅化生成（无 PIL）——圆角矩形 SDF + 贝塞尔曲线距离场，产出 favicon.ico / icon-16/32/48/192/512/180；主图标 base64 内联规避浏览器 favicon 缓存，apple-touch-icon 单独走直角整幅不透明（iOS 自套圆角 mask）
 
 ```bash
-node tests/engine.test.cjs   # 运行测试（任意 Node ≥ 18）
+node tests/engine.test.cjs    # 运行测试（任意 Node ≥ 18）
+python3 tools/make_icons.py   # 重新生成站点图标
 ```
 
 ## License

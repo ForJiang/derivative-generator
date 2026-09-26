@@ -60,6 +60,13 @@
     return String(parseFloat(v.toPrecision(10)));
   }
 
+  function gcd(a, b) {
+    a = Math.round(Math.abs(a));
+    b = Math.round(Math.abs(b));
+    while (b) { const t = a % b; a = b; b = t; }
+    return a || 1;
+  }
+
   /* ---------------- 词法分析 ---------------- */
 
   const FUNCTION_NAMES = [
@@ -560,7 +567,20 @@
         if (b.t === 'neg') return { t: 'neg', a: simplifyPass({ t: 'div', a: a, b: b.a }) };
         if (isZero(a)) return num(0);
         if (isNum(b, 1)) return a;
-        if (a.t === 'num' && b.t === 'num' && b.v !== 0 && isCleanNumber(a.v / b.v)) return num(a.v / b.v);
+        if (a.t === 'num' && b.t === 'num' && b.v !== 0) {
+          const q = a.v / b.v;
+          if (isCleanNumber(q)) return num(q);
+          // 整洁不了就约分：3/9 → 1/3（展示成最简分数）
+          if (Number.isInteger(a.v) && Number.isInteger(b.v)) {
+            const g = gcd(Math.abs(a.v), Math.abs(b.v));
+            if (g > 1) return { t: 'div', a: num(a.v / g), b: num(b.v / g) };
+          }
+        }
+        // (k·u)/m → (k/m)·u（整洁的系数，如 16x/64 → x/4）
+        if (isNum(b) && a.t === 'mul' && isNum(a.a) && b.v !== 0 && isCleanNumber(a.a.v / b.v)) {
+          const k = a.a.v / b.v;
+          return k === 1 ? a.b : { t: 'mul', a: num(k), b: a.b };
+        }
         if (eq(a, b)) return num(1);
         return rebuild(node, { a: a, b: b });
       }
