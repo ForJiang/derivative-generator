@@ -23,6 +23,16 @@
 | 🧩 **友好的输入** | 隐式乘法（`2x`、`xsin(x)`）、Unicode 写法（`π`、`√`、`x²`）自动识别，错误定位到第几个字符 |
 | 🌐 **中英双语** | 跟随系统语言，顶栏一键切换，选择记在 localStorage；连解析错误都分中英（引擎错误带 code，界面侧查译文） |
 
+## 界面预览
+
+![主界面](docs/screenshot-main.png)
+
+首屏是 hero 与函数列表：三条示例曲线（sin(x)、x²/8 − 1.5、e^(−x²)）输入即画，每行可独立显隐、增删；
+顶栏右侧是中英切换。下面的界面是画布与分析面板：多曲线同图、悬停读值，选中函数即可得到各阶导数、
+求导步骤与切线方程。
+
+![画布与分析](docs/screenshot-graph.png)
+
 ## 设计语言
 
 玻璃面板与控件语言对齐姊妹站 [image-metadata-cleaner](https://forjiang.github.io/image-metadata-cleaner/)：深色单一主题
@@ -43,8 +53,9 @@ fragment shader 绘制的 RGB 正弦波场（`assets/js/wave-bg.js`，三条正�
 浏览器（纯静态站点，GitHub Pages）
  ├─ assets/js/engine.js   表达式 → AST → 求导规则 → 化简 → 数学排版渲染
  ├─ assets/js/plot.js     逐点采样求值，Canvas 绘制；箱线图胡须法自适应 y 范围
- ├─ assets/js/main.js     函数列表 / 分析面板 / 画布交互 / 日志接线
+ ├─ assets/js/main.js     函数列表 / 分析面板 / 画布交互 / 日志与语言接线
  ├─ assets/js/log.js      终端计算日志（与 image-metadata-cleaner 同款）
+ ├─ assets/js/i18n.js     中英双语文案（与 image-metadata-cleaner 同模式）
  ├─ assets/js/wave-bg.js  WebGL RGB 正弦波背景
  └─ assets/js/reveal.js   卡片入场动画（不依赖 IntersectionObserver）
 ```
