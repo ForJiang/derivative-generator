@@ -5,7 +5,7 @@
 **在线使用：https://forjiang.github.io/function-grapher/**
 
 ![Pages 在线](https://img.shields.io/badge/Pages-%E5%9C%A8%E7%BA%BF-3ddc97)
-![tests](https://img.shields.io/badge/tests-238%20passing-3ddc97)
+![tests](https://img.shields.io/badge/tests-260%20passing-3ddc97)
 ![no build](https://img.shields.io/badge/no--build-%E9%9B%B6%E4%BE%9D%E8%B5%96-3ddc97)
 ![i18n](https://img.shields.io/badge/i18n-%E4%B8%AD%E8%8B%B1%E5%8F%8C%E8%AF%AD-3ddc97)
 ![license](https://img.shields.io/badge/license-MIT-3ddc97)
