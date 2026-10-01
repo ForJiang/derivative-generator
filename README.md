@@ -43,6 +43,9 @@ fragment shader 绘制的 RGB 正弦波场（`assets/js/wave-bg.js`，三条正�
 `prefers-reduced-motion` 下动画静止。站点图标由 `tools/make_icons.py` 纯标准库光栅化生成（圆角矩形 SDF +
 贝塞尔曲线距离场，不依赖 PIL），主图标 base64 内联规避浏览器 favicon 缓存。
 
+加载上做过一轮精简：WebGL 背景延后到页面 `load` 事件之后才创建上下文、编译 shader，不占首屏关键路径；
+未使用的 CSS 规则、状态字段与模块导出均已清掉（全仓库语料比对确认，非动态拼接的类名才删）。
+
 双语（中英）同样沿用 IMC 的模式：`assets/js/i18n.js` 词典 + `data-i18n` 静态标注 + `t(key, vars)` 动态文案，
 顶栏一键切换、跟随系统语言、localStorage 记忆；连解析错误都分中英——引擎抛错时带 `code/vars`，
 英文下由界面拼出 `Near character N: ...` 这样的完整译文。
