@@ -247,6 +247,21 @@ ok(true, '分隔');
     try { E.derivativeOf(bad, 1); } catch (e) { threw = e.message; }
     ok(threw !== null && threw.includes('不可导'), `求导 ${bad} 应报不可导`, threw || '未抛错');
   }
+  // 每个错误码都必须在双语词典里有译文（防 code 与 key 打字不一致）
+  {
+    const I18N = require('../assets/js/i18n.js');
+    const codes = ['empty', 'expect', 'num', 'unknownLetter', 'unknownChar', 'needParen',
+      'multiArg', 'incomplete', 'missingOperand', 'unexpected', 'trailing', 'trailingOp', 'nonDiff'];
+    for (const lang of ['zh', 'en']) {
+      I18N.setLang(lang);
+      for (const c of codes) {
+        const v = I18N.t('err.' + c);
+        ok(v !== 'err.' + c, `错误码 ${c} 有${lang === 'zh' ? '中' : '英'}文译文`, v);
+      }
+    }
+    I18N.setLang('zh');
+  }
+
   // 与 floor 组合的可导部分：错误信息可读即可（整体不可导）
   let mixErr = null;
   try { E.derivativeOf('x^2 + floor(x)', 1); } catch (e) { mixErr = e.message; }

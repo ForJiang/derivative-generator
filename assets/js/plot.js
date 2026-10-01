@@ -1,8 +1,8 @@
 /*
- * 导函数生成器 - Canvas 函数绘图
+ * 函数图像生成器 - Canvas 函数绘图
  * 全局对象 window.DerivPlot.render(canvas, opts)
- * opts: { fns: [{fn, color, width}], view:{xmin,xmax}, tangent:{a,k,b}|null, hover:{x}|null }
- * 自适应 y 范围（分位数），自动处理间断/渐近线断笔。
+ * opts: { fns: [{fn, color, width, dash}], view:{xmin,xmax}, tangent:{a,k,b}|null, hover:{x}|null }
+ * y 范围用箱线图胡须法自适应（真实峰值不裁、渐近毛刺不炸），自动处理间断/渐近线/阶梯断笔。
  */
 (function () {
   'use strict';
@@ -28,11 +28,8 @@
 
   function fmtTick(v, step) {
     if (Math.abs(v) < 1e-12) v = 0;
-    const digits = Math.max(0, -Math.floor(Math.log10(step)) + (step < 1 ? 0 : 0));
-    let s = v.toFixed(Math.min(6, Math.max(0, digits)));
-    s = parseFloat(s).toPrecision(10);
-    s = String(parseFloat(s));
-    return s;
+    const digits = Math.max(0, -Math.floor(Math.log10(step)));
+    return String(parseFloat(v.toFixed(Math.min(6, digits))));
   }
 
   // 采样并返回 {xs, ys}，间断处 y 为 NaN
@@ -165,7 +162,7 @@
       if (Math.abs(x) > stepX / 2) ctx.fillText(fmtTick(x, stepX), px, yLabelsTop ? cssH - 16 : Math.min(Math.max(yAxisPx + 4, 2), cssH - 16));
     }
     const y0 = Math.ceil(ymin / stepY) * stepY;
-    ctx.textAlign = xAxisPx < 14 || xAxisPx > cssW - 14 ? 'left' : 'left';
+    ctx.textAlign = 'left';
     for (let y = y0, guard = 0; y <= ymax && guard < 200; y += stepY, guard++) {
       const py = mapY(y);
       ctx.beginPath();
@@ -232,7 +229,6 @@
       });
     }
 
-    return { mapX: mapX, mapY: mapY, xmin: xmin, xmax: xmax };
   }
 
   window.DerivPlot = { render: render };

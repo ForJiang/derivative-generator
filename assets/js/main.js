@@ -47,7 +47,8 @@
     derivToggle: $('derivToggle'),
     tangentX: $('tangentX'), tangentBtn: $('tangentBtn'), tangentClear: $('tangentClear'), tangentInfo: $('tangentInfo'),
     toasts: $('toasts'),
-    logBody: $('logBody'), logCount: $('logCount'), logClear: $('logClear'), logToggle: $('logToggle')
+    logBody: $('logBody'), logCount: $('logCount'), logClear: $('logClear'), logToggle: $('logToggle'),
+    langBtn: $('langBtn')
   };
 
   /* ---------- 状态 ---------- */
@@ -169,8 +170,9 @@
         }
       }
     }
-    renderPlot();
+    // 选中行的 plot 重绘由 computeAnalysis 收尾（内部含 renderPlot），避免一次输入画两遍
     if (f.id === state.selectedId) computeAnalysis();
+    else renderPlot();
     return !f.err;
   }
 
@@ -212,12 +214,12 @@
     const eyeBtn = document.createElement('button');
     eyeBtn.type = 'button';
     eyeBtn.className = 'btn-icon active';
-    eyeBtn.title = '显示 / 隐藏这条曲线';
+    eyeBtn.title = T.t('fn.toggleTitle');
     eyeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>';
     const delBtn = document.createElement('button');
     delBtn.type = 'button';
     delBtn.className = 'btn-icon';
-    delBtn.title = '删除这条函数';
+    delBtn.title = T.t('fn.delTitle');
     delBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
     actions.appendChild(eyeBtn);
     actions.appendChild(delBtn);
@@ -414,6 +416,17 @@
     els.tooltip.style.left = left + 'px';
   }
 
+  let hoverRaf = 0;
+
+  // 指针移动是连续事件：合并到同一帧，避免每次 mousemove 都全量重采样 + 重绘
+  function scheduleRender() {
+    if (hoverRaf) return;
+    hoverRaf = requestAnimationFrame(function () {
+      hoverRaf = 0;
+      renderPlot();
+    });
+  }
+
   function hoverClear() {
     state.hover = null;
     els.tooltip.classList.remove('show');
@@ -429,7 +442,7 @@
     els.tangentBtn.disabled = !sf || !sf.ast;
     if (!sf) {
       els.anTitle.textContent = T.t('analyze.default');
-      els.resultLabel.textContent = "f'n(x)";
+      els.resultLabel.textContent = 'f′(x)';
       els.resultMath.innerHTML = '';
       els.resultHint.textContent = T.t('analyze.noFn');
       els.resultHint.hidden = false;
@@ -508,11 +521,11 @@
     if (!sf || !sf.ast) return;
     let a;
     try { a = E.evaluate(E.parse(String(aRaw)), 0); } catch (e) {
-      els.tangentInfo.textContent = '切点 x = "' + aRaw + '" 不是有效的表达式';
+      els.tangentInfo.textContent = T.t('tangent.badPoint', { raw: aRaw });
       state.tangent = null;
       return;
     }
-    if (!isFinite(a)) { els.tangentInfo.textContent = '切点 x 必须是一个确定的数'; state.tangent = null; return; }
+    if (!isFinite(a)) { els.tangentInfo.textContent = T.t('tangent.badNumber'); state.tangent = null; return; }
     let k;
     try { k = E.evaluate(E.derivativeOf(sf.src, 1).result, a); } catch (e) {
       log('warn', T.t('log.warn.tangentFail', { label: fnLabel(sf) }), errorText(e));
@@ -521,7 +534,7 @@
     const y0 = E.evaluate(sf.ast, a);
     if (!isFinite(y0) || !isFinite(k)) {
       log('warn', T.t('log.warn.tangentFail', { label: fnLabel(sf) }), T.t('log.warn.tangentPoint', { a: fmtVal(a) }));
-      els.tangentInfo.textContent = '函数在 x = ' + fmtVal(a) + ' 处没有定义，无法作切线';
+      els.tangentInfo.textContent = T.t('tangent.undef', { a: fmtVal(a) });
       state.tangent = null;
       renderPlot();
       return;
@@ -596,7 +609,7 @@
     const sf = selectedFn();
     if (!sf || !sf.ast) return;
     let text;
-    try { text = E.toText(E.derivativeOf(sf.src, state.order).result); } catch (e) { showToast('当前函数不可导'); return; }
+    try { text = E.toText(E.derivativeOf(sf.src, state.order).result); } catch (e) { showToast(T.t('d.copyNonDiff')); return; }
     const done = function () { showToast(T.t('d.copyDone', { text: text })); log('cmd', T.t('log.cmd.copy'), text); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(done, function () { showToast(T.t('d.copyFail')); });
@@ -650,7 +663,7 @@
     }
     state.hover = { x: x };
     hoverInfo(x);
-    renderPlot();
+    scheduleRender();
   });
   els.plot.addEventListener('pointerup', function () { state.dragging = false; });
   els.plot.addEventListener('pointercancel', function () { state.dragging = false; });
@@ -682,7 +695,12 @@
 
   function rerenderDynamic() {
     for (const f of state.fns) {
-      if (f.el) f.el.querySelector('.fn-input').placeholder = T.t('fn.placeholder');
+      if (!f.el) continue;
+      f.el.querySelector('.fn-input').placeholder = T.t('fn.placeholder');
+      // 行内按钮的 title 是建行时按当时语言写的，切换时同步刷新
+      const btns = f.el.querySelectorAll('.fn-actions .btn-icon');
+      if (btns[0]) btns[0].title = T.t('fn.toggleTitle');
+      if (btns[1]) btns[1].title = T.t('fn.delTitle');
     }
     renderEmpty(); // 计数器等含数字的动态文本
     updateLogToggleLabel();
@@ -692,7 +710,7 @@
 
   T.onLangChange(rerenderDynamic);
 
-  $('langBtn').addEventListener('click', function () {
+  els.langBtn.addEventListener('click', function () {
     T.setLang(T.getLang() === 'zh' ? 'en' : 'zh');
     T.applyI18n();
     updateLogToggleLabel();
@@ -707,7 +725,6 @@
   addFunction('x^2/8 - 1.5', true);
   addFunction('e^(-x^2)', true);
   selectFn(state.fns[0].id);
-  renderEmpty();
 
   if (window.revealAll) window.revealAll();
 })();

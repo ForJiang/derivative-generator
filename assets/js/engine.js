@@ -820,17 +820,13 @@
     return { order: order, result: cur, steps: steps, chain: chain };
   }
 
+  // 只导出界面/测试真正调用的入口；differentiate/simplify 等经 derivativeOf 间接使用
   const API = {
     parse: parse,
-    differentiate: differentiate,
-    diffTemplate: diffTemplate,
-    simplify: simplify,
     evaluate: evaluate,
     toHTML: toHTML,
     toText: toText,
-    derivativeOf: derivativeOf,
-    hasX: hasX,
-    ruleName: ruleName
+    derivativeOf: derivativeOf
   };
 
   if (typeof module !== 'undefined' && module.exports) {
