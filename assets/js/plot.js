@@ -235,5 +235,5 @@
     return { mapX: mapX, mapY: mapY, xmin: xmin, xmax: xmax };
   }
 
-  window.DerivPlot = { render: render, sample: sample };
+  window.DerivPlot = { render: render };
 })();

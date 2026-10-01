@@ -290,9 +290,6 @@ main {
 
 .btn:active { transform: scale(0.98); }
 
-.btn-primary { background: #f2f3f6; color: #0a0a0c; }
-.btn-primary:hover { background: #ffffff; }
-
 .btn-ghost {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--line);
@@ -329,8 +326,6 @@ main {
 .chip:hover { background: rgba(255, 255, 255, 0.1); color: var(--text); border-color: var(--line-strong); }
 
 /* ============ 画布 ============ */
-
-.plot-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 .legend {
   display: inline-flex;
@@ -447,8 +442,6 @@ main {
 .result-math::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 3px; }
 
 .an-hint { color: var(--text-3); font-size: 12.5px; margin: 0; }
-.an-err { color: var(--warn); font-size: 12.5px; margin: 0; }
-
 .math {
   font-family: var(--serif);
   font-style: italic;
