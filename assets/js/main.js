@@ -44,7 +44,7 @@
     anTitle: $('anTitle'), orderVal: $('orderVal'), orderMinus: $('orderMinus'), orderPlus: $('orderPlus'),
     resultLabel: $('resultLabel'), resultMath: $('resultMath'), resultHint: $('resultHint'),
     copyBtn: $('copyBtn'), stepsCard: $('stepsCard'), stepsList: $('stepsList'),
-    derivToggle: $('derivToggle'),
+    derivToggle: $('derivToggle'), origToggle: $('origToggle'),
     tangentX: $('tangentX'), tangentBtn: $('tangentBtn'), tangentClear: $('tangentClear'), tangentInfo: $('tangentInfo'),
     toasts: $('toasts'),
     logBody: $('logBody'), logCount: $('logCount'), logClear: $('logClear'), logToggle: $('logToggle'),
@@ -63,6 +63,7 @@
     tangent: null,      // {a, k, b, y0}
     dragging: false,
     showDeriv: false,
+    showOrig: false,
     nextId: 1
   };
 
@@ -338,6 +339,18 @@
         width: 2.2
       };
     });
+    // 选中函数的原函数叠加（半透明实线，同色）
+    if (state.showOrig) {
+      const sf0 = selectedFn();
+      if (sf0 && sf0.ast) {
+        list.push({
+          fn: function (x) { return E.evaluate(sf0.ast, x); },
+          color: sf0.color,
+          width: 2.2,
+          alpha: 0.55
+        });
+      }
+    }
     // 选中函数的导函数叠加（虚线，同色）
     if (state.showDeriv) {
       const sf = selectedFn();
@@ -370,6 +383,16 @@
       l.appendChild(document.createTextNode(label));
       els.legend.appendChild(l);
     });
+    if (state.showOrig && selectedFn()) {
+      const l = document.createElement('span');
+      l.className = 'legend';
+      const iEl = document.createElement('i');
+      iEl.style.background = selectedFn().color;
+      iEl.style.opacity = '0.55';
+      l.appendChild(iEl);
+      l.appendChild(document.createTextNode(T.t('legend.origFn')));
+      els.legend.appendChild(l);
+    }
     if (state.showDeriv && selectedFn()) {
       const l = document.createElement('span');
       l.className = 'legend';
@@ -438,7 +461,9 @@
   function computeAnalysis() {
     const sf = selectedFn();
     els.derivToggle.classList.toggle('active', state.showDeriv);
+    els.origToggle.classList.toggle('active', state.showOrig);
     els.derivToggle.disabled = !sf || !sf.ast;
+    els.origToggle.disabled = !sf || !sf.ast;
     els.tangentBtn.disabled = !sf || !sf.ast;
     if (!sf) {
       els.anTitle.textContent = T.t('analyze.default');
@@ -629,6 +654,13 @@
     state.showDeriv = !state.showDeriv;
     els.derivToggle.classList.toggle('active', state.showDeriv);
     log('cmd', T.t('log.cmd.overlay'), T.t(state.showDeriv ? 'state.on' : 'state.off'));
+    renderPlot();
+  });
+
+  els.origToggle.addEventListener('click', function () {
+    state.showOrig = !state.showOrig;
+    els.origToggle.classList.toggle('active', state.showOrig);
+    log('cmd', T.t('log.cmd.origOverlay'), T.t(state.showOrig ? 'state.on' : 'state.off'));
     renderPlot();
   });
 

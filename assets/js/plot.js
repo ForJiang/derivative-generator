@@ -87,12 +87,12 @@
     return { ymin, ymax };
   }
 
-  function drawCurve(ctx, r, mapX, mapY, ymin, ymax, color, width, dash) {
+  function drawCurve(ctx, r, mapX, mapY, ymin, ymax, color, width, dash, alpha) {
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    if (dash) ctx.setLineDash(dash);
+    if (alpha) ctx.globalAlpha = alpha;
     ctx.beginPath();
     let pen = false;
     let prevY = NaN;
@@ -115,6 +115,7 @@
     }
     ctx.stroke();
     if (dash) ctx.setLineDash([]);
+    if (alpha) ctx.globalAlpha = 1;
   }
 
   function render(canvas, opts) {
@@ -182,7 +183,7 @@
 
     // 曲线
     opts.fns.forEach(function (f, i) {
-      drawCurve(ctx, results[i], mapX, mapY, ymin, ymax, f.color, f.width || 2, f.dash);
+      drawCurve(ctx, results[i], mapX, mapY, ymin, ymax, f.color, f.width || 2, f.dash, f.alpha);
     });
 
     // 切线
