@@ -139,23 +139,6 @@ main {
   font-size: clamp(14px, 2.4vw, 16px);
 }
 
-.hero-badges { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 2px; }
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12.5px;
-  color: var(--text-2);
-  padding: 5px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(8px);
-}
-
-.badge svg { width: 13px; height: 13px; color: var(--ok); }
-
 /* ============ 玻璃面板 ============ */
 
 .panel {
@@ -710,7 +693,7 @@ footer a:hover { color: var(--text); border-bottom-color: var(--line-strong); }
   .fn-row { grid-template-columns: 44px minmax(0, 1fr); }
   .fn-side { grid-column: 2; flex-direction: row; align-items: center; justify-content: space-between; }
   /* 画布之上的 backdrop-filter 是移动端滚动卡顿的主因：降模糊、提不透明度补偿 */
-  .topbar, .panel, .faq details, .badge, .toast { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .topbar, .panel, .faq details, .toast { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
   .panel { background: rgba(13, 14, 18, 0.8); }
   .faq details { background: rgba(13, 14, 18, 0.8); }
 }

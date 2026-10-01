@@ -260,7 +260,6 @@ ok(true, '分隔');
   ok(I18N.t('brand.name') === '函数图像生成器', '中文 brand', I18N.t('brand.name'));
   I18N.setLang('en');
   ok(I18N.t('brand.name') === 'Function Grapher', '英文 brand', I18N.t('brand.name'));
-  ok(I18N.t('hero.badge.oss') === 'Free · Open source · No ads', '英文 badge');
   ok(I18N.t('faq.q1') === 'How are the graphs drawn?', '英文 FAQ');
   ok(I18N.t('faq.a3').includes('238'), '英文测试数同步', I18N.t('faq.a3').slice(0, 80));
   I18N.setLang('zh');
