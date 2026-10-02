@@ -1,11 +1,11 @@
-# 函数图像生成器
+# 函数图像生成器 · Function Grapher
 
 在线绘制任意函数图像的工具：多函数同图对比、符号求导、原函数与导数叠加、生成切线方程。**纯静态、零依赖、纯前端计算，输入不会上传到任何服务器。**
 
 **在线使用：https://forjiang.github.io/function-grapher/**
 
 ![Pages 在线](https://img.shields.io/badge/Pages-%E5%9C%A8%E7%BA%BF-3ddc97)
-![tests](https://img.shields.io/badge/tests-260%20passing-3ddc97)
+![tests](https://img.shields.io/badge/tests-285%20passing-3ddc97)
 ![no build](https://img.shields.io/badge/no--build-%E9%9B%B6%E4%BE%9D%E8%B5%96-3ddc97)
 ![i18n](https://img.shields.io/badge/i18n-%E4%B8%AD%E8%8B%B1%E5%8F%8C%E8%AF%AD-3ddc97)
 ![license](https://img.shields.io/badge/license-MIT-3ddc97)
@@ -67,7 +67,7 @@ fragment shader 绘制的 RGB 正弦波场（`assets/js/wave-bg.js`，三条正�
 ## 测试
 
 ```bash
-node tests/engine.test.cjs    # 260 项：符号导数 vs 中心差分、解析往返、错误码、中英 key 对齐
+node tests/engine.test.cjs    # 285 项：符号导数 vs 中心差分、解析往返、错误码、中英 key 对齐
 ```
 
 每个内置函数的导数都与数值差分交叉验证过，测试还覆盖了复合函数（专门抓链式因子遗漏）、
